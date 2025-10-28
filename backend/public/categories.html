@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SabSrul - Video Platform</title>
+    
+    <!-- REPLACE the /css/output.css line with Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            silent: true
+        }
+    </script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="index.html" class="flex items-center">
+                        <i class="fas fa-play-circle text-2xl text-purple-600 mr-2"></i>
+                        <span class="text-xl font-bold text-gray-900">SabSrul</span>
+                        <span class="ml-2 bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">Admin</span>
+                    </a>
+                </div>
+
+                <!-- User Menu -->
+                <div class="flex items-center space-x-4">
+                    <span class="text-gray-700 hidden sm:block">Welcome, Admin</span>
+                    <div class="relative">
+                        <button id="userMenuButton" class="flex items-center space-x-2 bg-gray-100 hover:bg-gray-200 rounded-lg px-3 py-2 transition duration-200">
+                            <div class="w-8 h-8 bg-gradient-purple rounded-full flex items-center justify-center">
+                                <span class="text-white font-semibold text-sm">A</span>
+                            </div>
+                            <i class="fas fa-chevron-down text-gray-500 text-xs"></i>
+                        </button>
+                        
+                        <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                            <a href="dashboard.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-chart-bar mr-2"></i>Dashboard
+                            </a>
+                            <a href="videos.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-play-circle mr-2"></i>Manage Videos
+                            </a>
+                            <a href="upload.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-upload mr-2"></i>Upload Video
+                            </a>
+                            <a href="index.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-eye mr-2"></i>View Site
+                            </a>
+                            <div class="border-t border-gray-200 my-1"></div>
+                            <a href="login.html" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100" onclick="logout()">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Sidebar -->
+            <div class="lg:w-64 flex-shrink-0">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sticky top-24">
+                    <nav class="space-y-1">
+                        <a href="dashboard.html" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition duration-200">
+                            <i class="fas fa-chart-bar mr-3"></i>
+                            Dashboard
+                        </a>
+                        <a href="videos.html" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition duration-200">
+                            <i class="fas fa-play-circle mr-3"></i>
+                            Manage Videos
+                        </a>
+                        <a href="upload.html" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition duration-200">
+                            <i class="fas fa-upload mr-3"></i>
+                            Upload Video
+                        </a>
+                        <a href="categories.html" class="flex items-center px-3 py-2 bg-purple-50 text-purple-700 rounded-lg font-medium">
+                            <i class="fas fa-tags mr-3"></i>
+                            Categories
+                        </a>
+                        <a href="analytics.html" class="flex items-center px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition duration-200">
+                            <i class="fas fa-chart-line mr-3"></i>
+                            Analytics
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1">
+                <!-- Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Manage Categories</h1>
+                        <p class="text-gray-600">Organize your videos into categories</p>
+                    </div>
+                    <button id="addCategoryBtn" class="mt-4 sm:mt-0 inline-flex items-center bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition duration-200">
+                        <i class="fas fa-plus mr-2"></i>
+                        Add Category
+                    </button>
+                </div>
+
+                <!-- Categories Grid -->
+                    <div id="categoriesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Categories loaded dynamically -->
+</div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="hidden text-center py-12">
+                    <i class="fas fa-tags text-4xl text-gray-300 mb-4"></i>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">No categories yet</h3>
+                    <p class="text-gray-500 mb-4">Create your first category to organize videos.</p>
+                    <button id="addFirstCategory" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition duration-200">
+                        Add Category
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Category Modal -->
+    <div id="categoryModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 id="modalTitle" class="text-lg font-medium text-gray-900 mb-4">Add Category</h3>
+                
+                <form id="categoryForm">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="categoryName" class="block text-sm font-medium text-gray-700 mb-2">
+                                Category Name <span class="text-red-500">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="categoryName"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Enter category name"
+                                required
+                            >
+                        </div>
+                        
+                        <div>
+                            <label for="categorySlug" class="block text-sm font-medium text-gray-700 mb-2">
+                                Slug <span class="text-red-500">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="categorySlug"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="category-slug"
+                                required
+                            >
+                            <p class="text-xs text-gray-500 mt-1">URL-friendly version of the name</p>
+                        </div>
+                        
+                        <div>
+                            <label for="categoryDescription" class="block text-sm font-medium text-gray-700 mb-2">
+                                Description
+                            </label>
+                            <textarea 
+                                id="categoryDescription"
+                                rows="3"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Enter category description"
+                            ></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-4 mt-6 pt-4 border-t border-gray-200">
+                        <button type="button" id="cancelCategory" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-200">
+                            Save Category
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/categories-management.js"></script>
+</body>
+</html>

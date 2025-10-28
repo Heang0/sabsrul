@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Video - SabSrul</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#0f0f0f',
+                            100: '#1a1a1a',
+                            500: '#dc2626',
+                            600: '#b91c1c',
+                            700: '#991b1b',
+                        },
+                        dark: {
+                            100: '#1a1a1a',
+                            200: '#2d2d2d',
+                            300: '#404040',
+                            400: '#525252',
+                            500: '#666666',
+                        }
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #e5e5e5;
+        }
+        .video-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(145deg, #1a1a1a, #0f0f0f);
+            border: 1px solid #2d2d2d;
+        }
+        .video-card:hover {
+            transform: translateY(-4px);
+            border-color: #dc2626;
+            box-shadow: 0 15px 30px rgba(220, 38, 38, 0.15);
+        }
+        .loading-spinner {
+            border: 3px solid #1a1a1a;
+            border-top: 3px solid #dc2626;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #dc2626 0%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .premium-badge {
+            background: linear-gradient(135deg, #dc2626, #ec4899);
+        }
+        .nav-blur {
+            backdrop-filter: blur(20px);
+            background: rgba(10, 10, 10, 0.8);
+        }
+        #videoPlayer {
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body class="font-inter">
+    <!-- Navigation Bar -->
+    <nav class="nav-blur border-b border-dark-300 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo & Back Button -->
+                <div class="flex items-center space-x-4">
+                    <!-- Back Button -->
+                    <a href="index.html" class="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors p-2 rounded-2xl hover:bg-dark-300">
+                        <i class="fas fa-arrow-left"></i>
+                        <span class="hidden sm:inline">Back</span>
+                    </a>
+                    
+                    <!-- Logo -->
+                    <a href="index.html" class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-primary-500 to-red-700 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-play text-white text-xs"></i>
+                        </div>
+                        <span class="text-lg font-bold bg-gradient-to-r from-primary-500 to-red-600 bg-clip-text text-transparent">SabSrul</span>
+                    </a>
+                </div>
+
+                <!-- Desktop Categories -->
+                <div class="hidden lg:flex items-center space-x-6">
+                    <div class="relative group">
+                        <button class="flex items-center space-x-2 text-gray-400 hover:text-white font-medium transition-colors">
+                            <span>Categories</span>
+                            <i class="fas fa-chevron-down text-xs mt-1"></i>
+                        </button>
+                        <div class="absolute hidden group-hover:block right-0 mt-2 w-56 bg-dark-200 rounded-2xl shadow-2xl border border-dark-300 py-3 z-50">
+                            <div id="desktopCategories" class="max-h-80 overflow-y-auto space-y-1">
+                                <!-- Categories loaded dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                    <a href="login.html" class="bg-primary-500 text-white px-5 py-2 rounded-2xl hover:bg-primary-600 transition-colors font-medium text-sm">
+                        <i class="fas fa-lock mr-2"></i>
+                        Admin
+                    </a>
+                </div>
+
+                <!-- Mobile Menu -->
+                <button id="mobileMenuButton" class="lg:hidden p-2 rounded-2xl text-gray-400 hover:text-white hover:bg-dark-300 transition-colors">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobileMenu" class="lg:hidden hidden border-t border-dark-300 py-4">
+                <div id="mobileCategories" class="grid grid-cols-2 gap-2">
+                    <!-- Categories loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+        <div class="flex flex-col xl:flex-row gap-6 lg:gap-8">
+            <!-- Video Player Section -->
+            <div class="xl:w-2/3">
+                <!-- Loading State -->
+                <div id="videoLoading" class="text-center py-16">
+                    <div class="loading-spinner mx-auto mb-4"></div>
+                    <p class="text-gray-500 text-lg">Loading premium video...</p>
+                </div>
+
+                <!-- Video Content -->
+                <div id="videoContent" class="hidden">
+                    <!-- Video Player Container -->
+                    <div class="bg-black rounded-2xl overflow-hidden mb-6 shadow-2xl border border-dark-300">
+                        <video 
+                            id="videoPlayer"
+                            class="w-full h-auto"
+                            controls
+                            poster=""
+                            preload="metadata"
+                        >
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+
+                    <!-- Video Info Card -->
+                    <div class="bg-dark-200 rounded-2xl shadow-lg border border-dark-300 p-6 mb-6">
+                        <!-- Title & Actions -->
+                        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
+                            <div class="flex-1">
+                                <div class="premium-badge inline-flex items-center space-x-1 px-3 py-1 rounded-full text-white text-xs font-medium mb-2">
+                                    <i class="fas fa-crown"></i>
+                                    <span>PREMIUM</span>
+                                </div>
+                                <h1 id="videoTitle" class="text-2xl lg:text-3xl font-bold text-white leading-tight">
+                                    Premium Video Title
+                                </h1>
+                            </div>
+                            <div class="flex items-center space-x-3 flex-shrink-0">
+                                <button id="likeBtn" class="flex items-center space-x-2 px-4 py-2.5 bg-dark-300 rounded-2xl hover:bg-red-500/20 hover:text-red-400 transition-all duration-200 group">
+                                    <i class="far fa-heart group-hover:fas"></i>
+                                    <span id="likeCount" class="font-medium">0</span>
+                                </button>
+                                <button id="shareBtn" class="flex items-center space-x-2 px-4 py-2.5 bg-dark-300 rounded-2xl hover:bg-blue-500/20 hover:text-blue-400 transition-all duration-200">
+                                    <i class="fas fa-share"></i>
+                                    <span class="font-medium">Share</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Video Meta -->
+                        <div class="flex flex-wrap items-center gap-4 mb-4 text-sm text-gray-400">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-eye"></i>
+                                <span id="videoViews">0 views</span>
+                            </div>
+                            <div class="w-1 h-1 bg-gray-600 rounded-full"></div>
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-calendar"></i>
+                                <span id="videoDate">Just now</span>
+                            </div>
+                            <div class="w-1 h-1 bg-gray-600 rounded-full"></div>
+                            <span id="videoCategory" class="bg-primary-500/20 text-primary-400 px-3 py-1.5 rounded-full text-xs font-medium capitalize border border-primary-500/30"></span>
+                        </div>
+
+                        <!-- Video Description -->
+                        <div class="border-t border-dark-300 pt-4">
+                            <p id="videoDescription" class="text-gray-300 leading-relaxed whitespace-pre-line">
+                                Premium video description will appear here with detailed information about the content.
+                            </p>
+                        </div>
+
+                        <!-- Video Tags -->
+                        <div id="videoTags" class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-dark-300 hidden">
+                            <!-- Tags will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Comments Section -->
+                    <div class="bg-dark-200 rounded-2xl shadow-lg border border-dark-300 p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-white flex items-center">
+                                <i class="fas fa-comments text-primary-500 mr-3"></i>
+                                Community
+                                <span class="ml-2 bg-dark-300 text-gray-400 px-2.5 py-1 rounded-full text-sm font-normal">Coming Soon</span>
+                            </h3>
+                        </div>
+                        <div class="text-center py-8">
+                            <div class="w-16 h-16 bg-gradient-to-br from-dark-300 to-dark-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-dark-400">
+                                <i class="fas fa-comment-slash text-primary-500 text-xl"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-white mb-2">Community Features Coming</h4>
+                            <p class="text-gray-400 max-w-md mx-auto">
+                                Premium community features including comments and ratings are under development.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error State -->
+                <div id="videoError" class="hidden text-center py-16">
+                    <div class="w-20 h-20 bg-gradient-to-br from-dark-300 to-dark-400 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-dark-400">
+                        <i class="fas fa-exclamation-triangle text-primary-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-3">Content Unavailable</h3>
+                    <p class="text-gray-400 mb-6 max-w-md mx-auto">
+                        This premium content is currently unavailable or has been removed.
+                    </p>
+                    <a href="index.html" class="inline-flex items-center space-x-2 bg-primary-500 text-white px-6 py-3.5 rounded-2xl hover:bg-primary-600 transition-colors font-semibold shadow-lg shadow-primary-500/25 border border-primary-600">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Back to Premium Content</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="xl:w-1/3">
+                <div class="sticky top-24 space-y-6">
+                    <!-- Related Videos -->
+                    <div class="bg-dark-200 rounded-2xl shadow-lg border border-dark-300 p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-bold text-white flex items-center">
+                                <i class="fas fa-film text-primary-500 mr-3"></i>
+                                More Premium Content
+                            </h3>
+                            <span class="bg-primary-500/20 text-primary-400 px-2.5 py-1 rounded-full text-xs font-medium border border-primary-500/30" id="relatedCount">0</span>
+                        </div>
+                        
+                        <!-- Loading State -->
+                        <div id="relatedLoading" class="text-center py-8">
+                            <div class="loading-spinner mx-auto mb-3" style="width: 30px; height: 30px;"></div>
+                            <p class="text-gray-500 text-sm">Finding premium content...</p>
+                        </div>
+
+                        <!-- Related Videos List -->
+                        <div id="relatedVideos" class="space-y-4">
+                            <!-- Related videos loaded dynamically -->
+                        </div>
+
+                        <!-- Empty State -->
+                        <div id="noRelatedVideos" class="hidden text-center py-8">
+                            <div class="w-12 h-12 bg-dark-300 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-dark-400">
+                                <i class="fas fa-film text-gray-500"></i>
+                            </div>
+                            <p class="text-gray-500 text-sm mb-3">No related content</p>
+                            <a href="index.html" class="text-primary-500 hover:text-primary-400 text-sm font-medium inline-flex items-center space-x-1">
+                                <span>Browse premium content</span>
+                                <i class="fas fa-arrow-right text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Video Stats -->
+                    <div id="videoStats" class="bg-dark-200 rounded-2xl shadow-lg border border-dark-300 p-6 hidden">
+                        <h4 class="font-bold text-white mb-4 text-lg flex items-center">
+                            <i class="fas fa-chart-bar text-primary-500 mr-3"></i>
+                            Performance Stats
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center p-4 bg-gradient-to-br from-dark-300 to-dark-400 rounded-2xl border border-dark-400">
+                                <div class="text-2xl font-bold text-primary-500 mb-1" id="statViews">0</div>
+                                <div class="text-gray-400 text-sm font-medium">Total Views</div>
+                            </div>
+                            <div class="text-center p-4 bg-gradient-to-br from-dark-300 to-dark-400 rounded-2xl border border-dark-400">
+                                <div class="text-2xl font-bold text-red-400 mb-1" id="statLikes">0</div>
+                                <div class="text-gray-400 text-sm font-medium">Likes</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Premium CTA -->
+                    <div class="bg-gradient-to-br from-primary-500 to-red-700 rounded-2xl p-6 text-white border border-primary-400">
+                        <h4 class="font-bold mb-3 text-lg">Premium Experience</h4>
+                        <p class="text-red-100 text-sm mb-4">Enjoying this content? Explore more exclusive premium videos.</p>
+                        <a href="index.html" class="inline-flex items-center space-x-2 bg-white text-primary-600 px-4 py-2.5 rounded-2xl hover:bg-gray-100 transition-colors font-semibold text-sm">
+                            <i class="fas fa-star"></i>
+                            <span>Discover More</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark-100 border-t border-dark-300 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center">
+                <div class="flex items-center justify-center space-x-3 mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-red-700 rounded-2xl flex items-center justify-center">
+                        <i class="fas fa-play text-white text-sm"></i>
+                    </div>
+                    <span class="text-xl font-bold bg-gradient-to-r from-primary-500 to-red-600 bg-clip-text text-transparent">SabSrul</span>
+                </div>
+                <p class="text-gray-500 text-sm max-w-md mx-auto mb-6">
+                    Premium adult content platform. 18+ only.
+                </p>
+                <div class="flex justify-center space-x-4 mb-6 text-xs">
+                    <span class="text-gray-600">Age Restricted</span>
+                    <span class="text-gray-600">•</span>
+                    <span class="text-gray-600">Adults Only</span>
+                    <span class="text-gray-600">•</span>
+                    <span class="text-gray-600">Premium Content</span>
+                </div>
+                <p class="text-gray-600 text-xs">
+                    &copy; 2024 SabSrul Premium Platform. 18+ Only. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/video.js"></script>
+</body>
+</html>

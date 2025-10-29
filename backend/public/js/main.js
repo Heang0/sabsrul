@@ -31,6 +31,9 @@ let currentSearch = '';
 let isLoading = false;
 let categories = [];
 
+
+
+
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Page loaded, initializing...');
@@ -44,7 +47,7 @@ async function initializePage() {
     setupMobileMenu();
 }
 
-// Setup event listeners
+// Replace the existing setupEventListeners function with this:
 function setupEventListeners() {
     // Search functionality
     if (searchInput) {
@@ -65,20 +68,73 @@ function setupEventListeners() {
         loadMoreBtn.addEventListener('click', loadMoreVideos);
     }
 
-    // Close mobile menu when clicking outside
+    // Close menus when clicking outside
     document.addEventListener('click', function(event) {
-        if (mobileMenu && !mobileMenu.contains(event.target) && mobileMenuButton && !mobileMenuButton.contains(event.target)) {
+        const categoriesDropdown = document.getElementById('categoriesDropdown');
+        const desktopCategoriesMenu = document.getElementById('desktopCategoriesMenu');
+        const mobileMenuButton = document.getElementById('mobileMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+        
+        // Close categories dropdown if clicking outside
+        if (categoriesDropdown && desktopCategoriesMenu && 
+            !categoriesDropdown.contains(event.target) && 
+            !desktopCategoriesMenu.contains(event.target)) {
+            desktopCategoriesMenu.classList.add('hidden');
+        }
+        
+        // Close mobile menu if clicking outside
+        if (mobileMenu && mobileMenuButton && 
+            !mobileMenu.contains(event.target) && 
+            !mobileMenuButton.contains(event.target) &&
+            !mobileMenu.classList.contains('hidden')) {
             mobileMenu.classList.add('hidden');
+            removeMobileBackdrop();
         }
     });
+
+    // Handle escape key to close all menus
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeAllMenus();
+            removeMobileBackdrop();
+        }
+    });
+
+    // Categories dropdown toggle (for desktop)
+    setupCategoriesDropdown();
 }
 
-// Setup mobile menu
+// Replace the existing setupMobileMenu function with this:
 function setupMobileMenu() {
+    const mobileMenuButton = document.getElementById('mobileMenuButton');
+    const mobileMenu = document.getElementById('mobileMenu');
+    
     if (mobileMenuButton && mobileMenu) {
         mobileMenuButton.addEventListener('click', function(e) {
             e.stopPropagation();
-            mobileMenu.classList.toggle('hidden');
+            const isHidden = mobileMenu.classList.contains('hidden');
+            
+            // Close all other menus first
+            closeAllMenus();
+            
+            // Toggle mobile menu
+            if (isHidden) {
+                mobileMenu.classList.remove('hidden');
+                addMobileBackdrop();
+            } else {
+                mobileMenu.classList.add('hidden');
+                removeMobileBackdrop();
+            }
+        });
+
+        // Close mobile menu when clicking a category
+        mobileMenu.addEventListener('click', function(e) {
+            if (e.target.closest('a') || e.target.closest('button')) {
+                setTimeout(() => {
+                    mobileMenu.classList.add('hidden');
+                    removeMobileBackdrop();
+                }, 100);
+            }
         });
     }
 }
@@ -146,21 +202,23 @@ function displayCategories(categories) {
         `;
     }
 
-    // Mobile categories - FIXED CLICK ISSUE
-    if (mobileCategories) {
-        mobileCategories.innerHTML = `
-            <button onclick="loadVideosByCategory('all'); mobileMenu.classList.add('hidden');" 
-                    class="w-full text-left px-4 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition duration-200">
-                All Categories
-            </button>
-            ${categories.map(category => `
-                <button onclick="loadVideosByCategory('${category.slug}'); mobileMenu.classList.add('hidden');" 
-                        class="w-full text-left px-4 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200">
-                    ${category.name}
-                </button>
-            `).join('')}
-        `;
-    }
+                // Mobile categories - WITH ICONS (exactly like video.html)
+if (mobileCategories) {
+    mobileCategories.innerHTML = `
+        <a href="index.html?category=all" 
+           class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg border border-gray-100">
+            <i class="fas fa-play-circle text-purple-500 mr-3 w-4"></i>
+            <span>All Categories</span>
+        </a>
+        ${categories.map(category => `
+            <a href="index.html?category=${category.slug || category.name}" 
+               class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg border border-gray-100">
+                <i class="fas fa-play-circle text-purple-500 mr-3 w-4"></i>
+                <span class="capitalize">${category.name}</span>
+            </a>
+        `).join('')}
+    `;
+}
 }
 
 function showNoCategoriesMessage() {
@@ -290,10 +348,16 @@ async function handleSearch(e) {
     if (query.length < 2) return;
     
     try {
-        const response = await fetch(`/api/videos/search?q=${encodeURIComponent(query)}`);
+        // Use the correct search endpoint
+        const response = await fetch(`/api/videos/search/videos?q=${encodeURIComponent(query)}`);
+        console.log('🔍 Search API response status:', response.status);
+        
         if (response.ok) {
             const data = await response.json();
+            console.log('🔍 Search results:', data.videos);
             showSearchResults(data.videos, query);
+        } else {
+            console.error('Search API error:', response.status);
         }
     } catch (error) {
         console.error('Search error:', error);
@@ -301,31 +365,60 @@ async function handleSearch(e) {
 }
 
 function showSearchResults(videos, query) {
+    console.log('🎯 Showing search results:', videos.length, 'videos for query:', query);
+    
     // Hide main content, show search results
     contentArea.classList.add('hidden');
     searchResults.classList.remove('hidden');
     
+    // Remove "Tag: " prefix if present for display
+    const displayQuery = query.replace(/^Tag: /, '');
+    
+    if (videos.length === 0) {
+        searchResultsGrid.innerHTML = `
+            <div class="col-span-full text-center py-12">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-search text-gray-400 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">No Videos Found</h3>
+                <p class="text-gray-500 mb-4">No videos found for "${displayQuery}"</p>
+                <button onclick="clearSearchResults()" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition duration-200">
+                    Show All Videos
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    // Update search results header to show correct count
+    const resultsHeader = document.querySelector('#searchResults h2');
+    if (resultsHeader) {
+        resultsHeader.innerHTML = `Search Results <span class="text-purple-600">• ${videos.length} videos found for "${displayQuery}"</span>`;
+    }
+    
     searchResultsGrid.innerHTML = videos.map(video => `
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition duration-300 cursor-pointer video-card" data-video-id="${video._id}">
+        <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video._id}">
             <div class="relative">
                 <img src="${video.thumbnail}" 
                      alt="${video.title}" 
-                     class="w-full h-32 object-cover"
-                     onerror="this.src='https://images.unsplash.com/photo-1574717024453-715e0b5cda7f?w=300&h=169&fit=crop'">
-                <div class="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-1 rounded">
+                     class="w-full h-48 object-cover"
+                     onerror="this.src='https://images.unsplash.com/photo-1574717024453-715e0b5cda7f?w=400&h=300&fit=crop'">
+                <div class="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
                     ${formatDuration(video.duration)}
                 </div>
             </div>
-            <div class="p-3">
+            <div class="mt-3">
                 <h3 class="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">${video.title}</h3>
-                <p class="text-gray-600 text-xs mb-2 capitalize">${video.category}</p>
+                <p class="text-gray-600 text-xs mb-1 capitalize">${video.category}</p>
                 <div class="flex justify-between text-gray-500 text-xs">
                     <span>${formatViews(video.views)} views</span>
                     <span>${formatTimeAgo(video.createdAt)}</span>
                 </div>
             </div>
         </div>
-    `).join('') || '<p class="text-gray-500 col-span-full text-center py-8">No videos found for "' + query + '"</p>';
+    `).join('');
+    
+    console.log('✅ Search results displayed');
 }
 
 function clearSearchResults() {
@@ -365,24 +458,23 @@ function displayVideos(videos, append = false) {
     }
 }
 
-            // In displayLatestVideos function
 function displayLatestVideos(videos) {
     if (!latestVideos) return;
     
     latestVideos.innerHTML = videos.map(video => `
-        <div class="video-card" data-video-id="${video._id}">
+        <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video._id}">
             <div class="relative">
                 <img src="${video.thumbnail}" 
                      alt="${video.title}" 
-                     class="w-full h-32 object-cover"
-                     onerror="this.src='https://images.unsplash.com/photo-1574717024453-715e0b5cda7f?w=300&h=169&fit=crop'">
-                <div class="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-1 rounded">
+                     class="w-full h-48 object-cover"
+                     onerror="this.src='https://images.unsplash.com/photo-1574717024453-715e0b5cda7f?w=400&h=300&fit=crop'">
+                <div class="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
                     ${formatDuration(video.duration)}
                 </div>
             </div>
-            <div class="p-3">
+            <div class="mt-3">
                 <h3 class="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">${video.title}</h3>
-                <p class="text-gray-600 text-xs mb-2 capitalize">${video.category}</p>
+                <p class="text-gray-600 text-xs mb-1 capitalize">${video.category}</p>
                 <div class="flex justify-between text-gray-500 text-xs">
                     <span>${formatViews(video.views)} views</span>
                     <span>${formatTimeAgo(video.createdAt)}</span>
@@ -432,7 +524,6 @@ function displayTrendingVideos(videos) {
     `).join('');
 }
 
-    // In displayCategorySections function
 function displayCategorySections(videos) {
     if (!categorySections) return;
     
@@ -455,20 +546,21 @@ function displayCategorySections(videos) {
                     View all
                 </button>
             </div>
-            <div class="video-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+            <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
                 ${categories[category].slice(0, 6).map(video => `
-                    <div class="video-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition duration-300 cursor-pointer" data-video-id="${video._id}">
+                    <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video._id}">
                         <div class="relative">
                             <img src="${video.thumbnail}" 
                                  alt="${video.title}" 
-                                 class="w-full h-32 object-cover"
-                                 onerror="this.src='https://images.unsplash.com/photo-1574717024453-715e0b5cda7f?w=300&h=169&fit=crop'">
-                            <div class="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-1 rounded">
+                                 class="w-full h-48 object-cover"
+                                 onerror="this.src='https://images.unsplash.com/photo-1574717024453-715e0b5cda7f?w=400&h=300&fit=crop'">
+                            <div class="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
                                 ${formatDuration(video.duration)}
                             </div>
                         </div>
-                        <div class="p-3">
+                        <div class="mt-3">
                             <h3 class="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">${video.title}</h3>
+                            <p class="text-gray-600 text-xs mb-1 capitalize">${video.category}</p>
                             <div class="flex justify-between text-gray-500 text-xs">
                                 <span>${formatViews(video.views)} views</span>
                                 <span>${formatTimeAgo(video.createdAt)}</span>
@@ -487,19 +579,26 @@ function navigateToVideo(videoId) {
 }
 
 // Utility functions
-function formatDuration(seconds) {
+    function formatDuration(seconds) {
+    // Handle undefined, null, or 0 duration
+    if (!seconds || seconds === 0) {
+        return '0:00';
+    }
+    
     const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
 function formatViews(views) {
+    if (!views && views !== 0) return '0 views';
+    
     if (views >= 1000000) {
-        return (views / 1000000).toFixed(1) + 'M';
+        return (views / 1000000).toFixed(1) + 'M views';
     } else if (views >= 1000) {
-        return (views / 1000).toFixed(1) + 'K';
+        return (views / 1000).toFixed(1) + 'K views';
     }
-    return views;
+    return views + ' views';
 }
 
 function formatLikes(likes) {
@@ -572,6 +671,194 @@ document.addEventListener('click', function(e) {
         navigateToVideo(videoId);
     }
 });
+// Load videos by tag
+async function loadVideosByTag(tag) {
+    console.log(`🏷️ Loading videos for tag: ${tag}`);
+    currentSearch = tag;
+    currentPage = 1;
+    
+    // Update search input
+    if (searchInput) searchInput.value = tag;
+    if (mobileSearchInput) mobileSearchInput.value = tag;
+    
+    await handleTagSearch(tag);
+}
+
+// Load videos by tag
+async function loadVideosByTag(tag) {
+    console.log(`🏷️ Loading videos for tag: ${tag}`);
+    currentSearch = tag;
+    currentPage = 1;
+    
+    // Update search input to show the tag
+    if (searchInput) searchInput.value = tag;
+    if (mobileSearchInput) mobileSearchInput.value = tag;
+    
+    await handleTagSearch(tag);
+}
+
+            // Handle tag search - FILTER BY SPECIFIC TAG
+async function handleTagSearch(tag) {
+    try {
+        showLoading();
+        hideSearchResults(); // Hide search results first
+        
+        const response = await fetch(`/api/videos/search/videos?q=${encodeURIComponent(tag)}&limit=50`);
+        console.log('🔍 Searching for tag:', tag);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('🏷️ Tag search results:', data.videos);
+            
+            if (data.videos && data.videos.length > 0) {
+                // Show search results with the tag filter
+                showSearchResults(data.videos, `Tag: ${tag}`);
+            } else {
+                // No videos found for this tag
+                showEmptyState();
+                showNoResultsMessage(`No videos found for tag: ${tag}`);
+            }
+        } else {
+            throw new Error(`Search API returned ${response.status}`);
+        }
+    } catch (error) {
+        console.error('Tag search error:', error);
+        showErrorState('Error searching by tag: ' + error.message);
+    }
+}
+
+// Show no results message
+function showNoResultsMessage(message) {
+    if (searchResultsGrid) {
+        searchResultsGrid.innerHTML = `
+            <div class="col-span-full text-center py-12">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-tag text-gray-400 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">No Videos Found</h3>
+                <p class="text-gray-500 mb-4">${message}</p>
+                <button onclick="clearSearchResults()" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition duration-200">
+                    Show All Videos
+                </button>
+            </div>
+        `;
+    }
+}
+
+// Update the checkUrlParams function to handle tags properly:
+function checkUrlParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const category = urlParams.get('category');
+    const tag = urlParams.get('tag');
+    const search = urlParams.get('search');
+    
+    console.log('🔍 URL Parameters:', { category, tag, search });
+    
+    if (category) {
+        console.log('🎯 Loading by category:', category);
+        loadVideosByCategory(category);
+    } else if (tag) {
+        console.log('🏷️ Loading by tag:', tag);
+        loadVideosByTag(tag);
+    } else if (search) {
+        console.log('🔍 Loading by search:', search);
+        loadVideosByTag(search); // Use same function for search terms
+    } else {
+        console.log('📹 Loading all videos');
+        loadVideos();
+    }
+}
+
+// Add these missing functions - Categories dropdown functionality
+function setupCategoriesDropdown() {
+    const categoriesDropdown = document.getElementById('categoriesDropdown');
+    const categoriesButton = categoriesDropdown ? categoriesDropdown.querySelector('button') : null;
+    const desktopCategoriesMenu = document.getElementById('desktopCategoriesMenu');
+    
+    if (categoriesButton && desktopCategoriesMenu) {
+        // Toggle menu on click
+        categoriesButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isHidden = desktopCategoriesMenu.classList.contains('hidden');
+            
+            // Close all other open menus first
+            closeAllMenus();
+            
+            // Toggle this menu
+            if (isHidden) {
+                desktopCategoriesMenu.classList.remove('hidden');
+            } else {
+                desktopCategoriesMenu.classList.add('hidden');
+            }
+        });
+        
+        // Keep menu open when hovering over it
+        desktopCategoriesMenu.addEventListener('mouseenter', function() {
+            desktopCategoriesMenu.classList.remove('hidden');
+        });
+        
+        desktopCategoriesMenu.addEventListener('mouseleave', function() {
+            desktopCategoriesMenu.classList.add('hidden');
+        });
+    }
+}
+
+// Mobile backdrop functions
+function addMobileBackdrop() {
+    let backdrop = document.getElementById('mobileBackdrop');
+    if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'mobileBackdrop';
+        backdrop.className = 'fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden';
+        backdrop.addEventListener('click', function() {
+            closeAllMenus();
+            removeMobileBackdrop();
+        });
+        document.body.appendChild(backdrop);
+    }
+    backdrop.classList.remove('hidden');
+}
+
+function removeMobileBackdrop() {
+    const backdrop = document.getElementById('mobileBackdrop');
+    if (backdrop) {
+        backdrop.classList.add('hidden');
+    }
+}
+
+function closeAllMenus() {
+    const desktopCategoriesMenu = document.getElementById('desktopCategoriesMenu');
+    const mobileMenu = document.getElementById('mobileMenu');
+    
+    if (desktopCategoriesMenu) desktopCategoriesMenu.classList.add('hidden');
+    if (mobileMenu) mobileMenu.classList.add('hidden');
+    
+    removeMobileBackdrop();
+}
+
+// Update your initializePage function:
+async function initializePage() {
+    await loadCategories();
+    setupEventListeners();
+    setupMobileMenu();
+    checkUrlParams(); // Check for category/tag filters
+    if (!window.location.search) {
+        loadVideos(); // Only load all videos if no filters
+    }
+}
+// Debug: Check what's being rendered
+console.log('=== DEBUG: Checking video card elements ===');
+console.log('Latest videos container:', document.getElementById('latestVideos'));
+console.log('Category sections container:', document.getElementById('categorySections'));
+
+// Check after videos load
+setTimeout(() => {
+    const latestCards = document.querySelectorAll('#latestVideos [data-video-id]');
+    const categoryCards = document.querySelectorAll('#categorySections [data-video-id]');
+    console.log('Latest video cards found:', latestCards.length);
+    console.log('Category video cards found:', categoryCards.length);
+    console.log('All video cards should have same styling now');
+}, 2000);
 
 // Make functions globally available
 window.navigateToVideo = navigateToVideo;

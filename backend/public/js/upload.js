@@ -19,8 +19,17 @@ const videoPreview = document.getElementById('videoPreview');
 const videoDuration = document.getElementById('videoDuration');
 const videoSize = document.getElementById('videoSize');
 
+// Thumbnail Selection Elements
+const thumbnailSelection = document.getElementById('thumbnailSelection');
+const thumbnailGrid = document.getElementById('thumbnailGrid');
+const confirmThumbnail = document.getElementById('confirmThumbnail');
+const selectedThumbnailPreview = document.getElementById('selectedThumbnailPreview');
+const selectedThumbnailImage = document.getElementById('selectedThumbnailImage');
+
 // Global variables
 let selectedVideoFile = null;
+let currentVideoId = null;
+let selectedThumbnailUrl = null;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
@@ -62,6 +71,11 @@ function setupEventListeners() {
     
     // Form submission
     uploadForm.addEventListener('submit', handleFormSubmit);
+    
+    // Thumbnail selection confirm button
+    if (confirmThumbnail) {
+        confirmThumbnail.addEventListener('click', handleConfirmThumbnail);
+    }
 }
 
 // Drag and drop handlers
@@ -218,12 +232,19 @@ async function handleFormSubmit(e) {
         if (response.ok) {
             const result = await response.json();
             console.log('✅ Upload successful:', result);
-            showSuccess('Video uploaded successfully!');
-            resetForm();
             
-            setTimeout(() => {
-                window.location.href = 'videos.html';
-            }, 2000);
+            // Show thumbnail selection if we have multiple thumbnails
+            if (result.video.allThumbnails && result.video.allThumbnails.length > 0) {
+                showThumbnailSelection(result.video.allThumbnails, result.video.id);
+            } else {
+                // No thumbnails, proceed normally
+                showSuccess('Video uploaded successfully!');
+                resetForm();
+                
+                setTimeout(() => {
+                    window.location.href = 'videos.html';
+                }, 2000);
+            }
         } else {
             const errorText = await response.text();
             console.error('Upload error response:', errorText);
@@ -239,6 +260,128 @@ async function handleFormSubmit(e) {
     } catch (error) {
         console.error('Upload error:', error);
         showError('Network error. Please try again.');
+    } finally {
+        setLoading(false);
+    }
+}
+
+function showThumbnailSelection(thumbnails, videoId) {
+    console.log('🖼️ showThumbnailSelection called');
+    console.log('📦 Thumbnails received:', thumbnails);
+    console.log('🎯 Thumbnail selection element:', document.getElementById('thumbnailSelection'));
+    console.log('🎯 Thumbnail grid element:', document.getElementById('thumbnailGrid'));
+    
+    currentVideoId = videoId;
+    
+    if (!thumbnailSelection || !thumbnailGrid) {
+        console.error('❌ Thumbnail selection elements not found!');
+        showSuccess('Video uploaded successfully!');
+        resetForm();
+        setTimeout(() => window.location.href = 'videos.html', 2000);
+        return;
+    }
+
+    // Hide upload form and show thumbnail selection
+    uploadForm.classList.add('hidden');
+    thumbnailSelection.classList.remove('hidden');
+    
+    console.log('✅ Modal should now be visible');
+
+    // Display all 6 thumbnails
+    thumbnailGrid.innerHTML = thumbnails.map((thumb, index) => `
+        <div class="thumbnail-option cursor-pointer transition-all duration-200 rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-500 hover:shadow-lg" 
+             data-index="${index}" data-thumbnail="${thumb}">
+            <img src="${thumb}" 
+                 alt="Thumbnail ${index + 1}" 
+                 class="w-full h-24 object-cover"
+                 onerror="this.src='https://via.placeholder.com/300x169/1a1a1a/666666?text=Thumbnail+${index + 1}'">
+            <div class="p-2 bg-white border-t">
+                <p class="text-xs font-medium text-gray-900 text-center">Thumbnail ${index + 1}</p>
+            </div>
+        </div>
+    `).join('');
+
+    // Handle thumbnail selection
+    selectedThumbnailUrl = thumbnails[0];
+    let selectedIndex = 0;
+
+    document.querySelectorAll('.thumbnail-option').forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove previous selection
+            document.querySelectorAll('.thumbnail-option').forEach(opt => {
+                opt.classList.remove('border-blue-500', 'border-2', 'bg-blue-50');
+            });
+            
+            // Add selection to clicked
+            this.classList.add('border-blue-500', 'border-2', 'bg-blue-50');
+            
+            // Update selection
+            selectedThumbnailUrl = this.dataset.thumbnail;
+            selectedIndex = parseInt(this.dataset.index);
+            
+            console.log('✅ Selected thumbnail:', selectedIndex + 1, selectedThumbnailUrl);
+            
+            // Show preview of selected thumbnail
+            updateSelectedThumbnailPreview(selectedThumbnailUrl);
+        });
+    });
+
+    // Select first thumbnail by default
+    document.querySelector('.thumbnail-option').click();
+}
+
+// Update selected thumbnail preview
+function updateSelectedThumbnailPreview(thumbnailUrl) {
+    if (selectedThumbnailImage) {
+        selectedThumbnailImage.src = thumbnailUrl;
+    }
+}
+
+// Handle thumbnail confirmation
+async function handleConfirmThumbnail() {
+    if (!selectedThumbnailUrl) {
+        showError('Please select a thumbnail first');
+        return;
+    }
+    
+    await confirmThumbnailSelection(selectedThumbnailUrl);
+}
+
+// Confirm thumbnail selection
+async function confirmThumbnailSelection(thumbnailUrl) {
+    console.log('✅ Confirming thumbnail selection:', thumbnailUrl);
+    
+    try {
+        setLoading(true);
+        
+        // Update video with selected thumbnail
+        const response = await fetch(`${API_BASE_URL}/videos/${currentVideoId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            },
+            body: JSON.stringify({ 
+                thumbnail: thumbnailUrl
+            })
+        });
+
+        if (response.ok) {
+            showSuccess('Thumbnail selected successfully!');
+            
+            // Reset and redirect
+            resetForm();
+            setTimeout(() => {
+                window.location.href = 'videos.html';
+            }, 1500);
+            
+        } else {
+            throw new Error('Failed to update thumbnail');
+        }
+        
+    } catch (error) {
+        console.error('❌ Thumbnail selection error:', error);
+        showError('Failed to select thumbnail: ' + error.message);
     } finally {
         setLoading(false);
     }
@@ -280,6 +423,14 @@ function setLoading(loading) {
 function resetForm() {
     uploadForm.reset();
     handleRemoveVideo();
+    
+    // Hide thumbnail selection if visible
+    if (thumbnailSelection) {
+        thumbnailSelection.classList.add('hidden');
+    }
+    if (uploadForm) {
+        uploadForm.classList.remove('hidden');
+    }
 }
 
 function showError(message) {

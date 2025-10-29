@@ -63,7 +63,7 @@
         <!-- Header -->
         <div class="mb-8">
             <h1 class="text-3xl font-bold text-gray-900 mb-2">Upload New Video</h1>
-            <p class="text-gray-600">Add a new video to SabSrul platform</p>
+            <p class="text-gray-600">Add a new video to SabSrul platform - 6 auto-thumbnails will be generated</p>
         </div>
 
         <!-- Upload Form -->
@@ -125,8 +125,6 @@
                             </div>
                         </div>
                     </div>
-
-                
 
                     <!-- Video Details -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -201,15 +199,63 @@
                             id="submitButton"
                             class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition duration-200 font-medium"
                         >
-                            <span id="submitText">Upload Video</span>
+                            <span id="submitText">Upload Video & Generate Thumbnails</span>
                             <div id="submitSpinner" class="hidden loading-spinner mx-auto mt-1"></div>
                         </button>
                     </div>
                 </div>
             </form>
         </div>
+
+        <!-- Thumbnail Selection Modal -->
+        <div id="thumbnailSelection" class="hidden mt-8 bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <div class="text-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">🎯 Choose Your Thumbnail</h3>
+                <p class="text-gray-600">Select one of the 6 auto-generated thumbnails from your video</p>
+            </div>
+
+            <!-- Thumbnail Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6" id="thumbnailGrid">
+                <!-- 6 thumbnails will be loaded here dynamically -->
+            </div>
+
+            <!-- Selected Thumbnail Preview -->
+            <div class="text-center mb-6 p-6 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border-2 border-green-300" id="selectedThumbnailPreview">
+                <p class="text-lg font-semibold text-gray-900 mb-3">Selected Thumbnail Preview</p>
+                <div class="flex justify-center mb-4">
+                    <img id="selectedThumbnailImage" 
+                         src="https://via.placeholder.com/400x225/1a1a1a/10b981?text=Select+a+thumbnail+above" 
+                         alt="Selected thumbnail" 
+                         class="w-80 h-45 object-cover rounded-lg border-4 border-green-500 shadow-xl">
+                </div>
+                <div class="flex justify-center items-center space-x-2 text-sm text-gray-600">
+                    <i class="fas fa-info-circle text-blue-500"></i>
+                    <span>This thumbnail will be displayed as the main video image</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-center space-x-4 pt-6 border-t border-gray-200">
+                <button type="button" id="confirmThumbnail" class="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200 font-medium shadow-lg">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    Use This Thumbnail
+                </button>
+                <button type="button" onclick="window.location.href='videos.html'" class="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition duration-200 font-medium">
+                    <i class="fas fa-arrow-right mr-2"></i>
+                    Skip to Videos
+                </button>
+            </div>
+        </div>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Test if modal elements exist
+            console.log('🎯 Thumbnail modal:', document.getElementById('thumbnailSelection'));
+            console.log('🎯 Thumbnail grid:', document.getElementById('thumbnailGrid'));
+            console.log('🎯 Confirm button:', document.getElementById('confirmThumbnail'));
+        });
+    </script>
     <script src="js/upload.js"></script>
 </body>
 </html>

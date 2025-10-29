@@ -16,11 +16,30 @@ router.get('/', videoController.getVideos);
 // @access  Public
 router.get('/:id', videoController.getVideo);
 
+// @route   GET /api/videos/search/videos
+// @desc    Search videos
+// @access  Public
+router.get('/search/videos', videoController.searchVideos);
+
+// @route   GET /api/videos/related/:id
+// @desc    Get related videos
+// @access  Public
+router.get('/related/:id', videoController.getRelatedVideos);
+
+// @route   POST /api/videos/:id/view
+// @desc    Increment video views
+// @access  Public
+router.post('/:id/view', videoController.incrementViews);
+
+// @route   POST /api/videos/:id/like
+// @desc    Like a video
+// @access  Public
+router.post('/:id/like', videoController.likeVideo);
 
 // --- Admin Routes (Protected by auth middleware) ---
 
 // @route   POST /api/videos/upload
-// @desc    Upload a new video and thumbnail
+// @desc    Upload a new video to Google Drive
 // @access  Private (Admin)
 router.post(
     '/upload', 
@@ -42,8 +61,9 @@ router.put('/:id', auth, videoController.updateVideo);
 // @access  Private (Admin)
 router.delete('/:id', auth, videoController.deleteVideo);
 
-
-// Optional: Placeholder for frame extraction if needed, though usually handled by Cloudinary
-// router.post('/extract-frames/:id', auth, videoController.extractFrames); 
+// @route   POST /api/videos/extract-frames/:id
+// @desc    Extract frames from video (placeholder)
+// @access  Private (Admin)
+router.post('/extract-frames/:id', auth, videoController.extractFrames);
 
 module.exports = router;

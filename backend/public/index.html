@@ -3,32 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SabSrul - Premium Video Platform</title>
+    <title>SabSrul - Premium Videos</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
                         primary: {
-                            50: '#0f0f0f',
-                            100: '#1a1a1a',
-                            500: '#dc2626',
-                            600: '#b91c1c',
-                            700: '#991b1b',
-                        },
-                        dark: {
-                            100: '#1a1a1a',
-                            200: '#2d2d2d',
-                            300: '#404040',
-                            400: '#525252',
-                            500: '#666666',
+                            50: '#fdf4ff',
+                            500: '#a855f7',
+                            600: '#9333ea',
+                            700: '#7c3aed',
                         }
-                    },
-                    fontFamily: {
-                        'inter': ['Inter', 'system-ui', 'sans-serif'],
                     }
                 }
             }
@@ -36,386 +25,289 @@
     </script>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body {
-            background: #0a0a0a;
-            color: #e5e5e5;
-        }
-        .video-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: linear-gradient(145deg, #1a1a1a, #0f0f0f);
-            border: 1px solid #2d2d2d;
-        }
-        .video-card:hover {
-            transform: translateY(-8px);
-            border-color: #dc2626;
-            box-shadow: 0 20px 40px rgba(220, 38, 38, 0.15);
-        }
-        .category-filter::-webkit-scrollbar {
-            display: none;
-        }
-        .category-filter {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        .loading-spinner {
-            border: 3px solid #1a1a1a;
-            border-top: 3px solid #dc2626;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .gradient-text {
-            background: linear-gradient(135deg, #dc2626 0%, #ec4899 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .premium-badge {
-            background: linear-gradient(135deg, #dc2626, #ec4899);
-        }
-        .nav-blur {
-            backdrop-filter: blur(20px);
-            background: rgba(10, 10, 10, 0.8);
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="font-inter">
-    <!-- Navigation Bar -->
-    <nav class="nav-blur border-b border-dark-300 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <!-- Logo & Mobile Menu -->
-                <div class="flex items-center space-x-4">
-                    <!-- Mobile Menu Button -->
-                    <button id="mobileMenuButton" class="lg:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-dark-300 transition-colors">
-                        <i class="fas fa-bars text-lg"></i>
-                    </button>
-                    
-                    <!-- Logo -->
-                    <a href="index.html" class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-red-700 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-play text-white text-sm"></i>
-                        </div>
-                        <div>
-                            <span class="text-xl font-bold bg-gradient-to-r from-primary-500 to-red-600 bg-clip-text text-transparent">SabSrul</span>
-                            <span class="block text-xs text-gray-500 -mt-1">Premium Content</span>
-                        </div>
-                    </a>
-                </div>
+<style>
+    /* ===== MOBILE STYLING ===== */
+    @media (max-width: 639px) {
+        /* Force 2 columns on ALL grids on mobile */
+        #latestVideos,
+        #searchResultsGrid,
+        #categorySections .grid,
+        .category-section .grid,
+        .video-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            display: grid !important;
+            gap: 0.5rem !important;
+        }
+        
+        /* Make ALL video cards the same */
+        .video-card,
+        [data-video-id],
+        #latestVideos > div,
+        #searchResultsGrid > div,
+        #categorySections .grid > div,
+        .category-section .grid > div {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+        }
+        
+        /* Mobile image height */
+        .video-card img,
+        [data-video-id] img,
+        #latestVideos img,
+        #searchResultsGrid img,
+        #categorySections img,
+        .category-section img {
+            height: 7rem !important;
+            width: 100% !important;
+            object-fit: cover !important;
+        }
+    }
 
-                <!-- Desktop Search -->
-                <div class="hidden lg:flex flex-1 max-w-2xl mx-8">
-                    <div class="relative w-full">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-search text-gray-500"></i>
+    /* ===== DESKTOP/LAPTOP STYLING ===== */
+    @media (min-width: 640px) {
+        /* Increase height for desktop */
+        .video-card img,
+        [data-video-id] img,
+        #latestVideos img,
+        #searchResultsGrid img,
+        #categorySections img,
+        .category-section img {
+            height: 10rem !important; /* Increased from 7rem to 10rem for desktop */
+            width: 100% !important;
+            object-fit: cover !important;
+        }
+    }
+
+    /* ===== UNIVERSAL STYLING (applies to all screens) ===== */
+    
+    /* Remove any white backgrounds and borders */
+    .video-card,
+    [data-video-id],
+    #latestVideos > div,
+    #searchResultsGrid > div,
+    #categorySections .grid > div,
+    .category-section .grid > div {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Clean text styling */
+    .video-card > div:not(.relative),
+    [data-video-id] > div:not(.relative) {
+        padding: 0.5rem 0.25rem 0 0.25rem !important;
+        margin: 0 !important;
+    }
+    
+    /* Video title */
+    .video-card h3,
+    [data-video-id] h3 {
+        font-size: 0.8rem !important;
+        line-height: 1.2 !important;
+        margin-bottom: 0.25rem !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        font-weight: 600 !important;
+        color: #1f2937 !important;
+    }
+    
+    /* Category text */
+    .video-card p.text-gray-600,
+    [data-video-id] p.text-gray-600 {
+        font-size: 0.7rem !important;
+        margin-bottom: 0.25rem !important;
+        color: #6b7280 !important;
+        text-transform: capitalize !important;
+    }
+    
+    /* Views and date */
+    .video-card .flex.justify-between,
+    [data-video-id] .flex.justify-between {
+        font-size: 0.65rem !important;
+        color: #9ca3af !important;
+        margin-top: 0.25rem !important;
+    }
+    
+    /* Hover effects */
+    .video-card:hover img,
+    [data-video-id]:hover img {
+        box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.15) !important;
+        transform: scale(1.02) !important;
+    }
+    
+    /* Grid gaps */
+    #latestVideos,
+    #searchResultsGrid,
+    #categorySections .grid,
+    .category-section .grid,
+    .video-grid,
+    .grid {
+        gap: 0.5rem !important;
+    }
+</style>
+<body class="bg-gray-50 font-inter">
+<!-- Clean Navigation -->
+<nav class="bg-white shadow-sm border-b sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <!-- Logo -->
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-play text-white text-xs"></i>
+                </div>
+                <span class="text-xl font-bold text-gray-900">SabSrul</span>
+            </div>
+
+            <!-- Desktop Categories -->
+            <div class="hidden lg:flex items-center space-x-6">
+                <div class="relative group" id="categoriesDropdown">
+                    <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100">
+                        <span>Categories</span>
+                        <i class="fas fa-chevron-down text-xs mt-1"></i>
+                    </button>
+                    <div id="desktopCategoriesMenu" class="absolute hidden right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-3 z-50">
+                        <div id="desktopCategories">
+                            <!-- Categories loaded dynamically -->
                         </div>
-                        <input 
-                            type="text" 
-                            id="searchInput"
-                            placeholder="Search premium videos..." 
-                            class="w-full pl-10 pr-4 py-3 bg-dark-200 border-0 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:bg-dark-300 transition-all duration-200 placeholder-gray-500 text-white"
-                        >
                     </div>
                 </div>
+            </div>
 
-                <!-- Desktop Navigation -->
-                <div class="hidden lg:flex items-center space-x-6">
-                    <a href="index.html" class="text-gray-300 hover:text-white font-medium transition-colors">
+            <!-- Mobile Menu Button (HAMBURGER ICON) -->
+            <button id="mobileMenuButton" class="lg:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="lg:hidden hidden border-t border-gray-200 py-4">
+            <div class="space-y-2">
+                <!-- Categories Section in Mobile -->
+                <div class="px-3 py-2">
+                    <h3 class="text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">Categories</h3>
+                    <div id="mobileCategories" class="space-y-1">
+                        <!-- Categories loaded dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Home Link with Icon -->
+                <div class="border-t border-gray-200 pt-2 mt-2">
+                    <a href="index.html" class="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg">
+                        <i class="fas fa-home mr-3 w-4"></i>
                         Home
                     </a>
-                    <div class="relative group">
-                        <button class="flex items-center space-x-2 text-gray-300 hover:text-white font-medium transition-colors">
-                            <span>Categories</span>
-                            <i class="fas fa-chevron-down text-xs mt-1"></i>
-                        </button>
-                        <div class="absolute hidden group-hover:block right-0 mt-2 w-56 bg-dark-200 rounded-2xl shadow-2xl border border-dark-300 py-3 z-50">
-                            <div id="desktopCategories" class="max-h-80 overflow-y-auto space-y-1">
-                                <!-- Categories loaded dynamically -->
-                            </div>
-                        </div>
-                    </div>
-                    <a href="login.html" class="bg-primary-500 text-white px-6 py-2.5 rounded-2xl hover:bg-primary-600 transition-colors font-medium shadow-lg shadow-primary-500/25">
-                        <i class="fas fa-lock mr-2"></i>
-                        Admin
-                    </a>
-                </div>
-            </div>
-
-            <!-- Mobile Menu -->
-            <div id="mobileMenu" class="lg:hidden hidden border-t border-dark-300 py-4 space-y-4">
-                <!-- Mobile Search -->
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i class="fas fa-search text-gray-500"></i>
-                    </div>
-                    <input 
-                        type="text" 
-                        id="mobileSearchInput"
-                        placeholder="Search videos..." 
-                        class="w-full pl-10 pr-4 py-3 bg-dark-200 border-0 rounded-2xl focus:ring-2 focus:ring-primary-500 focus:bg-dark-300 transition-all duration-200 text-white"
-                    >
-                </div>
-
-                <!-- Mobile Categories -->
-                <div id="mobileCategories" class="grid grid-cols-2 gap-2">
-                    <!-- Categories loaded dynamically -->
                 </div>
             </div>
         </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section class="relative bg-gradient-to-br from-dark-100 via-dark-200 to-black border-b border-dark-300 overflow-hidden">
-        <div class="absolute inset-0 bg-black opacity-50"></div>
-        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-            <div class="text-center">
-                <div class="premium-badge inline-flex items-center space-x-2 px-4 py-2 rounded-full text-white text-sm font-medium mb-6">
-                    <i class="fas fa-crown"></i>
-                    <span>PREMIUM CONTENT</span>
-                </div>
-                <h1 class="text-4xl lg:text-6xl font-bold text-white mb-6">
-                    Exclusive
-                    <span class="gradient-text">Premium</span>
-                    Videos
-                </h1>
-                <p class="text-xl text-gray-400 mb-8 max-w-2xl mx-auto leading-relaxed">
-                    Access curated premium content. High-quality videos for discerning viewers.
-                </p>
-                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <button onclick="scrollToContent()" class="bg-primary-500 text-white px-8 py-4 rounded-2xl hover:bg-primary-600 transition-all duration-200 font-semibold shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/30 border border-primary-600">
-                        <i class="fas fa-play-circle mr-2"></i>
-                        Start Watching
-                    </button>
-                    <button class="border-2 border-dark-400 text-gray-400 px-8 py-4 rounded-2xl hover:border-primary-500 hover:text-primary-400 transition-all duration-200 font-semibold">
-                        <i class="fas fa-fire mr-2"></i>
-                        Trending Now
-                    </button>
-                </div>
-            </div>
-        </div>
-    </section>
+    </div>
+</nav>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="mainContent">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Search Section -->
+        <div class="mb-8">
+            <div class="relative max-w-2xl mx-auto">
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        id="searchInput"
+                        placeholder="Search videos..."
+                        class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-sm"
+                    >
+                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories Filter -->
+        <div class="mb-8">
+            <div id="categoriesContainer" class="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
+                <!-- Categories loaded dynamically -->
+            </div>
+        </div>
+
+        <!-- Search Results -->
+        <!-- Search Results -->
+<div id="searchResults" class="hidden mb-8">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">Search Results</h2>
+        <button id="clearSearch" class="text-gray-500 hover:text-gray-700 text-sm font-medium">
+            Clear Search
+        </button>
+    </div>
+    <div id="searchResultsGrid" class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        <!-- Search results loaded here -->
+    </div>
+</div>
+
         <!-- Loading State -->
         <div id="loadingState" class="text-center py-16">
             <div class="loading-spinner mx-auto mb-4"></div>
             <p class="text-gray-500 text-lg">Loading premium content...</p>
         </div>
 
-        <!-- Categories Filter -->
-        <div id="categoriesContainer" class="hidden mb-8">
-            <div class="flex space-x-3 overflow-x-auto category-filter pb-4">
-                <!-- Categories loaded dynamically -->
-            </div>
-        </div>
-
         <!-- Content Area -->
         <div id="contentArea" class="hidden">
-            <!-- Trending Section -->
-            <section id="trendingSection" class="mb-16">
-                <div class="flex items-center justify-between mb-8">
-                    <div>
-                        <h2 class="text-3xl font-bold text-white flex items-center">
-                            <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-red-700 rounded-2xl flex items-center justify-center shadow-lg shadow-red-500/25 mr-4">
-                                <i class="fas fa-fire text-white"></i>
-                            </div>
-                            Hot Right Now
-                        </h2>
-                        <p class="text-gray-500 mt-2">Most viewed premium content</p>
-                    </div>
-                    <div class="hidden lg:flex space-x-2">
-                        <button class="p-3 rounded-2xl bg-dark-200 border border-dark-300 hover:border-primary-500 text-gray-400 hover:text-primary-400 transition-all duration-200">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button class="p-3 rounded-2xl bg-dark-200 border border-dark-300 hover:border-primary-500 text-gray-400 hover:text-primary-400 transition-all duration-200">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="trendingVideos">
-                    <!-- Trending videos loaded dynamically -->
-                </div>
-            </section>
-
-            <!-- Latest Videos Section -->
-            <section id="latestSection" class="mb-16">
-                <div class="flex items-center justify-between mb-8">
-                    <div>
-                        <h2 class="text-3xl font-bold text-white flex items-center">
-                            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25 mr-4">
-                                <i class="fas fa-bolt text-white"></i>
-                            </div>
-                            New Releases
-                        </h2>
-                        <p class="text-gray-500 mt-2">Fresh premium content added daily</p>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6" id="latestVideos">
-                    <!-- Latest videos loaded dynamically -->
-                </div>
-            </section>
+            <!-- Latest Videos -->
+                    <!-- Latest Videos -->
+<section class="mb-12">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">Latest Videos</h2>
+    <div id="latestVideos" class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+        <!-- Latest videos loaded here -->
+    </div>
+</section>
 
             <!-- Category Sections -->
             <div id="categorySections">
-                <!-- Category sections generated dynamically -->
-            </div>
-
-            <!-- Load More -->
-            <div class="flex justify-center mt-16">
-                <button id="loadMoreBtn" class="bg-dark-200 border-2 border-dark-400 text-gray-400 px-8 py-4 rounded-2xl hover:border-primary-500 hover:text-primary-400 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl">
-                    <i class="fas fa-plus-circle mr-2"></i>
-                    Load More Content
-                </button>
+                <!-- Category sections loaded dynamically -->
             </div>
         </div>
 
         <!-- Empty State -->
         <div id="emptyState" class="hidden text-center py-16">
-            <div class="w-24 h-24 bg-gradient-to-br from-dark-300 to-dark-400 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
-                <i class="fas fa-video text-gray-600 text-3xl"></i>
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-film text-gray-400 text-xl"></i>
             </div>
-            <h3 class="text-2xl font-bold text-white mb-3">No content available</h3>
-            <p class="text-gray-500 max-w-md mx-auto mb-6">New premium content coming soon. Stay tuned!</p>
-            <button class="bg-primary-500 text-white px-6 py-3 rounded-2xl hover:bg-primary-600 transition-colors font-medium">
-                <i class="fas fa-sync-alt mr-2"></i>
-                Refresh
-            </button>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">No Videos Available</h3>
+            <p class="text-gray-500">Check back later for new content.</p>
         </div>
 
-        <!-- Search Results -->
-        <div id="searchResults" class="hidden">
-            <div class="flex items-center justify-between mb-8">
-                <div>
-                    <h2 class="text-3xl font-bold text-white">Search Results</h2>
-                    <p class="text-gray-500 mt-2" id="searchResultsCount">Found 0 videos</p>
-                </div>
-                <button id="clearSearch" class="text-primary-500 hover:text-primary-400 font-medium flex items-center space-x-2">
-                    <i class="fas fa-times"></i>
-                    <span>Clear Search</span>
-                </button>
-            </div>
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6" id="searchResultsGrid">
-                <!-- Search results loaded dynamically -->
-            </div>
+        <!-- Load More Button -->
+        <div id="loadMoreBtn" class="hidden text-center mt-8">
+            <button class="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-50 transition duration-200 font-medium">
+                Load More Videos
+            </button>
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark-100 border-t border-dark-300 mt-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-                <!-- Brand -->
-                <div class="lg:col-span-1">
-                    <div class="flex items-center space-x-3 mb-6">
-                        <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-red-700 rounded-2xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-play text-white"></i>
-                        </div>
-                        <div>
-                            <span class="text-2xl font-bold bg-gradient-to-r from-primary-500 to-red-600 bg-clip-text text-transparent">SabSrul</span>
-                            <p class="text-gray-500 text-sm">Premium Video Platform</p>
-                        </div>
+    <footer class="bg-white border-t mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center">
+                <div class="flex items-center justify-center space-x-3 mb-4">
+                    <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-play text-white text-xs"></i>
                     </div>
-                    <p class="text-gray-500 text-sm leading-relaxed">
-                        Exclusive premium content platform for adult viewers. Curated high-quality videos.
-                    </p>
+                    <span class="text-lg font-bold text-gray-900">SabSrul</span>
                 </div>
-
-                <!-- Quick Links -->
-                <div>
-                    <h3 class="font-semibold text-white mb-6 text-lg">Navigation</h3>
-                    <ul class="space-y-3 text-gray-500">
-                        <li>
-                            <a href="index.html" class="hover:text-white transition-colors flex items-center space-x-2">
-                                <i class="fas fa-home text-sm w-5"></i>
-                                <span>Home</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="hover:text-white transition-colors flex items-center space-x-2">
-                                <i class="fas fa-fire text-sm w-5"></i>
-                                <span>Trending</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="hover:text-white transition-colors flex items-center space-x-2">
-                                <i class="fas fa-tags text-sm w-5"></i>
-                                <span>Categories</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Legal -->
-                <div>
-                    <h3 class="font-semibold text-white mb-6 text-lg">Legal</h3>
-                    <ul class="space-y-3 text-gray-500">
-                        <li>
-                            <a href="#" class="hover:text-white transition-colors flex items-center space-x-2">
-                                <i class="fas fa-shield-alt text-sm w-5"></i>
-                                <span>Privacy Policy</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="hover:text-white transition-colors flex items-center space-x-2">
-                                <i class="fas fa-file-contract text-sm w-5"></i>
-                                <span>Terms of Service</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="hover:text-white transition-colors flex items-center space-x-2">
-                                <i class="fas fa-exclamation-triangle text-sm w-5"></i>
-                                <span>Age Verification</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Connect -->
-                <div>
-                    <h3 class="font-semibold text-white mb-6 text-lg">Support</h3>
-                    <p class="text-gray-500 text-sm mb-4">24/7 customer support</p>
-                    <div class="flex space-x-4">
-                        <a href="#" class="w-10 h-10 bg-dark-300 rounded-2xl flex items-center justify-center hover:bg-primary-500 transition-colors group">
-                            <i class="fas fa-envelope text-gray-500 group-hover:text-white"></i>
-                        </a>
-                        <a href="#" class="w-10 h-10 bg-dark-300 rounded-2xl flex items-center justify-center hover:bg-primary-500 transition-colors group">
-                            <i class="fas fa-headset text-gray-500 group-hover:text-white"></i>
-                        </a>
-                        <a href="#" class="w-10 h-10 bg-dark-300 rounded-2xl flex items-center justify-center hover:bg-primary-500 transition-colors group">
-                            <i class="fas fa-question-circle text-gray-500 group-hover:text-white"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bottom Bar -->
-            <div class="border-t border-dark-300 mt-12 pt-8 flex flex-col lg:flex-row justify-between items-center space-y-4 lg:space-y-0">
-                <p class="text-gray-600 text-sm">
-                    &copy; 2024 SabSrul Premium Platform. 18+ Only. All rights reserved.
+                <p class="text-gray-500 text-sm">
+                    Premium video content platform
                 </p>
-                <div class="flex items-center space-x-6 text-gray-600 text-sm">
-                    <span>Age Restricted Content</span>
-                    <div class="w-1 h-1 bg-gray-600 rounded-full"></div>
-                    <span>Adults Only</span>
-                </div>
             </div>
         </div>
     </footer>
 
-    <script>
-        function scrollToContent() {
-            document.getElementById('mainContent').scrollIntoView({ 
-                behavior: 'smooth' 
-            });
-        }
-    </script>
     <script src="js/main.js"></script>
 </body>
 </html>

@@ -10,6 +10,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 backend/gen-lang-client-*.json
+backend/gen-lang-client-0116212364-a26c833d311e.json
 
 
 # OS generated files

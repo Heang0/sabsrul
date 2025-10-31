@@ -1,4 +1,9 @@
 console.log('✅ video.js loaded!');
+console.log('🔍 DOM Elements Check:');
+console.log('- videoPlayer:', document.getElementById('videoPlayer'));
+console.log('- relatedLoadMore:', document.getElementById('relatedLoadMore'));
+console.log('- relatedVideos:', document.getElementById('relatedVideos'));
+console.log('- searchInput:', document.getElementById('searchInput'));
 
 // DOM Elements
 const videoLoading = document.getElementById('videoLoading');
@@ -18,6 +23,10 @@ const relatedVideos = document.getElementById('relatedVideos');
 const noRelatedVideos = document.getElementById('noRelatedVideos');
 const relatedCount = document.getElementById('relatedCount');
 
+// ADD THESE MISSING ELEMENTS:
+const videoPlayer = document.getElementById('videoPlayer'); // This was missing!
+const relatedLoadMore = document.getElementById('relatedLoadMore'); // This was missing!
+
 // Settings control elements
 const settingsButton = document.getElementById('settingsButton');
 const settingsMenu = document.getElementById('settingsMenu');
@@ -29,6 +38,11 @@ let currentQuality = 'auto';
 let currentVideoId = null;
 let hasLiked = false;
 let isSettingsMenuOpen = false;
+
+// RELATED VIDEOS PAGINATION - ADD THESE
+let relatedVideosPage = 1;
+let hasMoreRelatedVideos = false;
+let currentRelatedCategory = '';
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
@@ -49,9 +63,20 @@ async function initializeVideoPage(videoId) {
     setupEventListeners();
     loadCategories(); // Load categories for navigation
     loadVideo(videoId);
+    
+    // Check if we came from a tag search and update UI accordingly
+    const urlParams = new URLSearchParams(window.location.search);
+    const tag = urlParams.get('tag');
+    if (tag) {
+        console.log(`🎯 Came from tag search: ${tag}`);
+        // The search bar will be automatically populated by setupVideoSearch
+    }
 }
 
 function setupEventListeners() {
+
+      // Search functionality - ADD THIS
+    setupVideoSearch();
     // Like button
     if (likeBtn) {
         likeBtn.addEventListener('click', handleLike);
@@ -125,6 +150,15 @@ function setupEventListeners() {
             closeSettingsMenu();
         }
     });
+
+    // Add event delegation for related video clicks
+document.addEventListener('click', function(e) {
+    const videoCard = e.target.closest('[data-video-id]');
+    if (videoCard) {
+        const videoId = videoCard.getAttribute('data-video-id');
+        window.location.href = `video.html?id=${videoId}`;
+    }
+});
 
     // Handle escape key to close all menus
     document.addEventListener('keydown', function(event) {
@@ -292,7 +326,7 @@ async function loadVideo(videoId) {
         
         if (video) {
             displayVideo(video);
-            loadRelatedVideos(videoId, video.category);
+            // REMOVE THIS LINE if it exists: loadRelatedVideos(videoId, video.category);
         } else {
             showVideoError();
         }
@@ -301,12 +335,15 @@ async function loadVideo(videoId) {
         showVideoError();
     }
 }
-
 function displayVideo(video) {
     console.log('🎬 Displaying video:', video.title);
     
     // Set current video ID for like functionality
     currentVideoId = video._id;
+    
+    // Reset related videos pagination
+    relatedVideosPage = 1;
+    hasMoreRelatedVideos = false;
     
     // Safely hide/show elements
     if (videoLoading) videoLoading.classList.add('hidden');
@@ -343,6 +380,9 @@ function displayVideo(video) {
         videoTags.classList.remove('hidden');
     }
     
+    // Load related videos - UPDATED CALL
+    loadRelatedVideos(video._id, video.category, 1, false);
+    
     // Update page title
     document.title = `${video.title || 'Video'} - SabSrul`;
     
@@ -353,6 +393,7 @@ function setupVideoPlayer(video) {
     const videoPlayer = document.getElementById('videoPlayer');
     
     console.log('🎥 Setting up video player with URL:', video.videoUrl);
+    console.log('📊 Available video qualities:', video.qualities);
     
     if (!videoPlayer) {
         console.error('❌ Video player element not found!');
@@ -365,26 +406,14 @@ function setupVideoPlayer(video) {
     // Detect available qualities
     detectAvailableQualities(video);
     
-    // Add main video source
+    // Add the main video source
     const mainSource = document.createElement('source');
     mainSource.src = video.videoUrl;
     mainSource.type = 'video/mp4';
     mainSource.setAttribute('data-quality', 'auto');
     videoPlayer.appendChild(mainSource);
     
-    // Add alternative qualities if available
-    if (video.qualities) {
-        Object.entries(video.qualities).forEach(([quality, url]) => {
-            if (url && url.startsWith('http')) {
-                const qualitySource = document.createElement('source');
-                qualitySource.src = url;
-                qualitySource.type = 'video/mp4';
-                qualitySource.setAttribute('data-quality', quality);
-                qualitySource.setAttribute('data-res', `${quality}p`);
-                videoPlayer.appendChild(qualitySource);
-            }
-        });
-    }
+    console.log('✅ Added main video source:', video.videoUrl);
     
     // Set poster (thumbnail)
     if (video.thumbnail && video.thumbnail.startsWith('http')) {
@@ -395,8 +424,10 @@ function setupVideoPlayer(video) {
         console.log('⚠️ Using default thumbnail');
     }
     
-    // Enable controls
+    // Enable controls and set attributes
     videoPlayer.controls = true;
+    videoPlayer.preload = 'auto';
+    videoPlayer.playsInline = true;
     
     // Setup YouTube-style settings controls
     setupSettingsControls();
@@ -406,12 +437,29 @@ function setupVideoPlayer(video) {
         incrementViews(video._id);
     });
     
+    // Listen for video events
+    videoPlayer.addEventListener('loadeddata', function() {
+        console.log('✅ Video data loaded, ready state:', videoPlayer.readyState);
+        console.log('📺 Video dimensions:', videoPlayer.videoWidth, 'x', videoPlayer.videoHeight);
+    });
+    
+    videoPlayer.addEventListener('canplay', function() {
+        console.log('🎬 Video can start playing');
+    });
+    
+    videoPlayer.addEventListener('error', function(e) {
+        console.error('❌ Video player error:', e);
+        console.error('Video error details:', videoPlayer.error);
+        handleVideoError(video);
+    });
+    
     console.log('✅ Video player setup complete');
-    console.log('📊 Qualities available:', availableQualities);
 }
 
 function detectAvailableQualities(video) {
     availableQualities = [];
+    
+    console.log('🔍 Detecting available qualities from video data:', video);
     
     // Add auto quality first
     availableQualities.push({
@@ -420,44 +468,53 @@ function detectAvailableQualities(video) {
         description: 'Automatically adjust quality'
     });
     
-    // Detect from video URLs
-    if (video.videoUrls) {
-        Object.entries(video.videoUrls).forEach(([quality, url]) => {
-            if (url && url.startsWith('http')) {
-                availableQualities.push({
-                    value: quality,
-                    label: `${quality}p`,
-                    description: `${quality}p - ${getQualityDescription(quality)}`
-                });
-            }
+    // Detect from video qualities object (REAL qualities from database)
+    if (video.qualities) {
+        // Sort qualities from highest to lowest
+        Object.entries(video.qualities)
+            .sort(([a], [b]) => parseInt(b) - parseInt(a))
+            .forEach(([quality, url]) => {
+                if (url && url.startsWith('http')) {
+                    availableQualities.push({
+                        value: quality,
+                        label: `${quality}p`,
+                        description: `${quality}p - ${getQualityDescription(quality)}`,
+                        url: url
+                    });
+                    console.log(`✅ Found quality: ${quality}p`);
+                }
+            });
+    }
+    
+    // If no specific qualities found, check if we can determine from main URL
+    if (availableQualities.length === 1 && video.videoUrl) {
+        console.log('⚠️ No specific qualities found, analyzing main URL');
+        // Add the main URL as a quality option
+        availableQualities.push({
+            value: 'source',
+            label: 'Source',
+            description: 'Original video quality',
+            url: video.videoUrl
         });
     }
     
-    // If no specific qualities, analyze the main video
-    if (availableQualities.length === 1 && video.videoUrl) {
-        // Simulate quality detection based on file size or other factors
-        if (video.fileSize > 200 * 1024 * 1024) { // >200MB = likely 1080p
-            availableQualities.push(
-                { value: '1080', label: '1080p', description: '1080p - Full HD' },
-                { value: '720', label: '720p', description: '720p - HD' },
-                { value: '480', label: '480p', description: '480p - Standard' }
-            );
-        } else if (video.fileSize > 100 * 1024 * 1024) { // >100MB = likely 720p
-            availableQualities.push(
-                { value: '720', label: '720p', description: '720p - HD' },
-                { value: '480', label: '480p', description: '480p - Standard' },
-                { value: '360', label: '360p', description: '360p - Basic' }
-            );
-        } else { // Smaller file
-            availableQualities.push(
-                { value: '480', label: '480p', description: '480p - Standard' },
-                { value: '360', label: '360p', description: '360p - Basic' },
-                { value: '240', label: '240p', description: '240p - Low' }
-            );
-        }
+    console.log('📊 Final available qualities:', availableQualities);
+}
+
+function handleVideoError(video) {
+    console.error('🚨 Video playback failed, trying fallback strategies');
+    
+    // Strategy 1: Try the main video URL directly
+    const videoPlayer = document.getElementById('videoPlayer');
+    if (video.videoUrl && videoPlayer.src !== video.videoUrl) {
+        console.log('🔄 Trying main video URL as fallback:', video.videoUrl);
+        videoPlayer.src = video.videoUrl;
+        return;
     }
     
-    console.log('📊 Available qualities:', availableQualities);
+    // Strategy 2: Show error to user
+    console.error('❌ All video sources failed');
+    alert('Video playback failed. Please try again or check your internet connection.');
 }
 
 function getQualityDescription(quality) {
@@ -552,15 +609,16 @@ function switchVideoQuality(quality) {
     const playbackRate = videoPlayer.playbackRate;
     
     if (quality === 'auto') {
-        // For auto quality, let the browser decide
-        videoPlayer.src = videoPlayer.querySelector('source[data-quality="auto"]').src;
+        // For auto quality, let the browser decide from available sources
+        videoPlayer.src = '';
+        videoPlayer.load();
     } else {
-        // Find the source for the selected quality
-        const targetSource = videoPlayer.querySelector(`source[data-quality="${quality}"]`);
-        if (targetSource) {
-            videoPlayer.src = targetSource.src;
+        // Find the quality object
+        const qualityObj = availableQualities.find(q => q.value === quality);
+        if (qualityObj && qualityObj.url) {
+            videoPlayer.src = qualityObj.url;
         } else {
-            console.warn('❌ Quality source not found:', quality);
+            console.warn('❌ Quality URL not found:', quality);
             return;
         }
     }
@@ -617,6 +675,19 @@ function formatCategoryName(category) {
 // Filter by tag
 function filterByTag(tag) {
     console.log(`🏷️ Filtering by tag: ${tag}`);
+    
+    // Update search input if it exists
+    const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    
+    if (searchInput) {
+        searchInput.value = tag;
+    }
+    if (clearSearchBtn) {
+        clearSearchBtn.classList.remove('hidden');
+    }
+    
+    // Navigate to index with tag filter
     window.location.href = `index.html?tag=${encodeURIComponent(tag)}`;
 }
 
@@ -683,53 +754,238 @@ async function incrementViews(videoId) {
     }
 }
 
-// Load related videos
-async function loadRelatedVideos(videoId, category) {
-    console.log('🔄 Loading related videos...');
+// Load related videos - WITH 16 VIDEOS LIMIT AND LOAD MORE
+async function loadRelatedVideos(videoId, category, page = 1, append = false) {
+    console.log('🔄 Loading related videos...', { category, page, append });
+    
     try {
-        const response = await fetch(`/api/videos/related/${videoId}?category=${category}&limit=6`);
-        const relatedVideosData = await response.json();
+        if (!append) {
+            // Show loading only on first load
+            if (relatedLoading) relatedLoading.classList.remove('hidden');
+            if (relatedVideos) relatedVideos.innerHTML = '';
+            if (noRelatedVideos) noRelatedVideos.classList.add('hidden');
+            if (relatedLoadMore) relatedLoadMore.classList.add('hidden');
+        }
         
-        if (relatedLoading) relatedLoading.classList.add('hidden');
+        // Get current video data to find tags for better relevance
+        const currentVideoResponse = await fetch(`/api/videos/${videoId}`);
+        const currentVideo = await currentVideoResponse.json();
+        const currentTags = currentVideo.tags || [];
         
-        if (relatedVideosData && relatedVideosData.length > 0) {
-            if (relatedCount) relatedCount.textContent = relatedVideosData.length;
-            displayRelatedVideos(relatedVideosData);
+        console.log('🏷️ Current video tags for relevance:', currentTags);
+        
+        let relevantVideos = [];
+        let categoryVideos = [];
+        let hasMoreFromCategory = false;
+        
+        // LOAD 16 VIDEOS INITIALLY, 18 ON SUBSEQUENT PAGES
+        const limit = page === 1 ? 16 : 18;
+        const categoryResponse = await fetch(`/api/videos?category=${category}&page=${page}&limit=${limit}`);
+        
+        if (!categoryResponse.ok) {
+            throw new Error(`Category API returned ${categoryResponse.status}`);
+        }
+        
+        const categoryData = await categoryResponse.json();
+        categoryVideos = categoryData.videos || [];
+        
+        // Calculate if we have more videos (show load more if total > 16)
+        const totalVideosInCategory = categoryData.totalCount || 0;
+        hasMoreFromCategory = categoryData.hasMore || categoryData.totalPages > page || 
+                             (page === 1 && totalVideosInCategory > 16);
+        
+        console.log('📹 Category videos loaded:', categoryVideos.length, 'Has more:', hasMoreFromCategory, 'Limit:', limit, 'Total in category:', totalVideosInCategory);
+        
+        // Try to get videos with same tags first (more relevant) - ONLY ON FIRST PAGE
+        if (currentTags.length > 0 && page === 1) {
+            try {
+                const tagPromises = currentTags.map(tag => 
+                    fetch(`/api/videos/search/videos?q=${encodeURIComponent(tag)}&limit=5`)
+                        .then(res => res.json())
+                        .then(data => data.videos || [])
+                        .catch(err => [])
+                );
+                
+                const tagResults = await Promise.all(tagPromises);
+                relevantVideos = tagResults.flat();
+                
+                // Remove duplicates and current video
+                relevantVideos = relevantVideos.filter((video, index, self) => 
+                    video._id !== videoId && 
+                    self.findIndex(v => v._id === video._id) === index
+                );
+                
+                console.log('🎯 Found relevant videos by tags:', relevantVideos.length);
+            } catch (tagError) {
+                console.log('⚠️ Tag-based search failed, using category only');
+            }
+        }
+        
+        // Combine videos: tag-relevant first (only on page 1), then category videos
+        let allVideos = [];
+        
+        if (page === 1) {
+            // On first page: tag-relevant videos first
+            allVideos = [...relevantVideos];
+            
+            // Add category videos that aren't already in the list, up to 16 total
+            for (let video of categoryVideos) {
+                if (video._id !== videoId && !allVideos.find(v => v._id === video._id)) {
+                    allVideos.push(video);
+                    // Stop at 16 videos for first page
+                    if (allVideos.length >= 16) break;
+                }
+            }
         } else {
-            if (noRelatedVideos) noRelatedVideos.classList.remove('hidden');
-            if (relatedCount) relatedCount.textContent = '0';
+            // On subsequent pages: only category videos
+            allVideos = categoryVideos.filter(video => video._id !== videoId);
+        }
+        
+        // Remove current video if it slipped through
+        allVideos = allVideos.filter(video => video._id !== videoId);
+        
+        console.log('🎯 Final related videos:', allVideos.length, 'Has more:', hasMoreFromCategory);
+        
+        if (!append && relatedLoading) {
+            relatedLoading.classList.add('hidden');
+        }
+        
+        if (allVideos.length > 0) {
+            // Update global variables for pagination
+            hasMoreRelatedVideos = hasMoreFromCategory;
+            currentRelatedCategory = category;
+            relatedVideosPage = page;
+            
+            displayRelatedVideos(allVideos, append);
+            
+            // Show/hide load more button
+            if (relatedLoadMore) {
+                if (hasMoreRelatedVideos) {
+                    relatedLoadMore.classList.remove('hidden');
+                    console.log('🔄 Load More button shown');
+                } else {
+                    relatedLoadMore.classList.add('hidden');
+                    console.log('❌ Load More button hidden');
+                }
+            }
+            
+            // Hide empty state
+            if (noRelatedVideos) noRelatedVideos.classList.add('hidden');
+        } else {
+            if (!append) {
+                if (noRelatedVideos) noRelatedVideos.classList.remove('hidden');
+            }
+            if (relatedLoadMore) relatedLoadMore.classList.add('hidden');
         }
     } catch (error) {
-        console.error('Error loading related videos:', error);
-        if (relatedLoading) relatedLoading.classList.add('hidden');
-        if (noRelatedVideos) noRelatedVideos.classList.remove('hidden');
-        if (relatedCount) relatedCount.textContent = '0';
+        console.error('❌ Error loading related videos:', error);
+        if (!append && relatedLoading) relatedLoading.classList.add('hidden');
+        if (!append && noRelatedVideos) noRelatedVideos.classList.remove('hidden');
+        if (relatedLoadMore) relatedLoadMore.classList.add('hidden');
     }
 }
 
-// Display related videos
-function displayRelatedVideos(videos) {
-    console.log('📹 Displaying related videos:', videos.length);
+// Display related videos - EXACT INDEX PAGE STYLING
+function displayRelatedVideos(videos, append = false) {
+    console.log('📹 Displaying related videos:', videos.length, 'Append:', append);
     if (!relatedVideos) return;
     
-    relatedVideos.innerHTML = videos.map(video => `
-        <div class="flex items-start space-x-3 p-3 bg-white rounded-xl border border-gray-200 hover:border-purple-300 hover:bg-gray-50 transition duration-200 cursor-pointer video-card" 
-             onclick="window.location.href='video.html?id=${video._id}'">
+    const videosHTML = videos.map(video => `
+    <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video._id}">
+        <div class="relative">
             <img src="${video.thumbnail}" 
                  alt="${video.title}" 
-                 class="w-20 h-14 object-cover rounded-lg flex-shrink-0"
-                 onerror="this.src='https://images.unsplash.com/photo-1574717024453-715e0b5cda7f?w=80&h=56&fit=crop'">
-            <div class="flex-1 min-w-0">
-                <h4 class="text-sm font-medium text-gray-900 line-clamp-2 mb-1">${video.title || 'Untitled Video'}</h4>
-                <p class="text-xs text-gray-600 mb-1 capitalize">${formatCategoryName(video.category)}</p>
-                <div class="flex items-center text-xs text-gray-500">
-                    <span>${formatViews(video.views || 0)} views</span>
-                    <span class="mx-1">•</span>
-                    <span>${formatTimeAgo(video.createdAt)}</span>
-                </div>
+                 class="w-full h-48 object-cover"
+                 onerror="this.src='https://images.unsplash.com/photo-1574717024453-715e0b5cda7f?w=400&h=300&fit=crop'">
+            <div class="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                ${formatDuration(video.duration)}
             </div>
         </div>
-    `).join('');
+        <div class="mt-3">
+            <h3 class="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">${video.title || 'Untitled Video'}</h3>
+            <p class="text-gray-600 text-xs mb-1 capitalize">${formatCategoryName(video.category)}</p>
+            <div class="flex justify-between text-gray-500 text-xs">
+                <span>${formatViews(video.views || 0)} views</span>
+                <span>${formatTimeAgo(video.createdAt)}</span>
+            </div>
+        </div>
+    </div>
+`).join('');
+    
+    if (append) {
+        relatedVideos.insertAdjacentHTML('beforeend', videosHTML);
+    } else {
+        relatedVideos.innerHTML = videosHTML;
+    }
+}
+
+// Load more related videos
+async function loadMoreRelatedVideos() {
+    if (!currentVideoId || !hasMoreRelatedVideos) return;
+    
+    relatedVideosPage++;
+    await loadRelatedVideos(currentVideoId, currentRelatedCategory, relatedVideosPage, true);
+}
+
+// Search functionality for video page
+function setupVideoSearch() {
+    const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    
+    if (searchInput && clearSearchBtn) {
+        // Check if we're on a tag page and pre-fill search
+        const urlParams = new URLSearchParams(window.location.search);
+        const tag = urlParams.get('tag');
+        
+        if (tag) {
+            searchInput.value = tag;
+            clearSearchBtn.classList.remove('hidden');
+        }
+        
+        // Show/hide clear button based on input
+        searchInput.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                clearSearchBtn.classList.remove('hidden');
+            } else {
+                clearSearchBtn.classList.add('hidden');
+                clearVideoSearch();
+            }
+        });
+        
+        // Handle search submission
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const query = this.value.trim();
+                if (query.length > 0) {
+                    window.location.href = `index.html?search=${encodeURIComponent(query)}`;
+                }
+            }
+        });
+        
+        // Clear search when X is clicked
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clearSearchBtn.classList.add('hidden');
+            clearVideoSearch();
+        });
+        
+        // Hide clear button on page load if no search
+        if (!tag) {
+            clearSearchBtn.classList.add('hidden');
+        }
+    }
+}
+
+// Clear search/tag on video page
+function clearVideoSearch() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tag = urlParams.get('tag');
+    const search = urlParams.get('search');
+    
+    // If we're on a tag or search page, redirect to clean index
+    if (tag || search) {
+        window.location.href = 'index.html';
+    }
 }
 
 // Show video error state
@@ -743,6 +999,27 @@ function showVideoError() {
 }
 
 // Utility functions
+function formatViews(views) {
+    if (!views && views !== 0) return '0';
+    if (views >= 1000000) {
+        return (views / 1000000).toFixed(1) + 'M';
+    } else if (views >= 1000) {
+        return (views / 1000).toFixed(1) + 'K';
+    }
+    return views.toString();
+}
+// Utility functions
+function formatDuration(seconds) {
+    // Handle undefined, null, or 0 duration
+    if (!seconds || seconds === 0) {
+        return '0:00';
+    }
+    
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
 function formatViews(views) {
     if (!views && views !== 0) return '0';
     if (views >= 1000000) {
@@ -782,11 +1059,41 @@ function formatTimeAgo(dateString) {
         return 'Recently';
     }
 }
+function formatLikes(likes) {
+    if (!likes && likes !== 0) return '0';
+    if (likes >= 1000) {
+        return (likes / 1000).toFixed(1) + 'K';
+    }
+    return likes.toString();
+}
+
+function formatTimeAgo(dateString) {
+    if (!dateString) return 'Recently';
+    
+    try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const diffMonths = Math.floor(diffDays / 30);
+        
+        if (diffDays === 0) return 'Today';
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+        if (diffMonths < 12) return `${diffMonths} months ago`;
+        return `${Math.floor(diffMonths / 12)} years ago`;
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return 'Recently';
+    }
+}
 
 // Make functions globally available
 window.filterByTag = filterByTag;
 window.toggleSettingsMenu = toggleSettingsMenu;
 window.switchVideoQuality = switchVideoQuality;
+window.loadMoreRelatedVideos = loadMoreRelatedVideos; // ADD THIS LINE
 window.loadVideosByCategory = function(category) {
     window.location.href = `index.html?category=${category}`;
 };

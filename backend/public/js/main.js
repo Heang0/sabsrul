@@ -31,7 +31,9 @@ let currentSearch = '';
 let isLoading = false;
 let categories = [];
 
-
+// CATEGORY PAGINATION VARIABLES - PROPERLY INITIALIZED
+let categoryPages = {}; // Store current page for each category
+let categoryHasMore = {}; // Store if each category has more pages
 
 
 // Initialize the page
@@ -58,8 +60,11 @@ function setupEventListeners() {
         mobileSearchInput.addEventListener('input', debounce(handleSearch, 300));
     }
 
+    // Setup search clear button - ADD THIS LINE
+    setupSearchClearButton();
+
     // Clear search
-    if (clearSearch) {
+   if (clearSearch) {
         clearSearch.addEventListener('click', clearSearchResults);
     }
 
@@ -259,7 +264,7 @@ async function loadVideos(category = 'all', page = 1, append = false) {
     try {
         const params = new URLSearchParams({
             page: page,
-            limit: 12,
+            limit: 12, // CHANGED FROM 16 TO 12
             ...(category !== 'all' && { category: category })
         });
         
@@ -271,20 +276,30 @@ async function loadVideos(category = 'all', page = 1, append = false) {
         }
         
         const data = await response.json();
-        console.log('📹 Videos loaded successfully:', data.videos.length, 'videos');
+        console.log('🔍 FULL API RESPONSE:', data);
+        
+        // CHANGED FROM 16 TO 12
+        const hasMoreVideos = data.videos.length >= 12 || data.hasMore;
+        
+        console.log('📹 Videos loaded:', data.videos.length, 'videos, Has more:', hasMoreVideos);
         
         if (data.videos.length === 0 && !append) {
             showEmptyState();
         } else {
-            displayVideos(data.videos, append);
+            displayVideos(data.videos, append, category, hasMoreVideos, page);
         }
         
-        currentPage = data.currentPage;
+        currentPage = page;
         currentCategory = category;
         
-        // Show/hide load more button
+        // Show/hide load more button based on actual data
         if (loadMoreBtn) {
-            loadMoreBtn.classList.toggle('hidden', !data.hasMore);
+            if (hasMoreVideos) {
+                loadMoreBtn.classList.remove('hidden');
+                loadMoreBtn.querySelector('button').textContent = `Load More Videos`;
+            } else {
+                loadMoreBtn.classList.add('hidden');
+            }
         }
         
     } catch (error) {
@@ -332,9 +347,8 @@ function updateActiveCategory(activeCategory) {
 async function loadMoreVideos() {
     if (isLoading) return;
     currentPage++;
-    await loadVideos(currentCategory, currentPage, true);
+    await loadVideos(currentCategory, currentPage, true); // append = true
 }
-
 // Search functionality
 async function handleSearch(e) {
     const query = e.target.value.trim();
@@ -367,8 +381,16 @@ async function handleSearch(e) {
 function showSearchResults(videos, query) {
     console.log('🎯 Showing search results:', videos.length, 'videos for query:', query);
     
-    // Hide main content, show search results
+    // Show the clear button in search bar
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    if (clearSearchBtn && query.length > 0) {
+        clearSearchBtn.classList.remove('hidden');
+    }
+    
+    // PROPERLY HIDE MAIN CONTENT AND SHOW SEARCH RESULTS
     contentArea.classList.add('hidden');
+    emptyState.classList.add('hidden');
+    loadingState.classList.add('hidden');
     searchResults.classList.remove('hidden');
     
     // Remove "Tag: " prefix if present for display
@@ -423,10 +445,30 @@ function showSearchResults(videos, query) {
 
 function clearSearchResults() {
     currentSearch = '';
-    if (searchInput) searchInput.value = '';
+    currentPage = 1;
+    currentCategory = 'all';
+    
+    if (searchInput) {
+        searchInput.value = '';
+        // Hide the clear button
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        if (clearSearchBtn) {
+            clearSearchBtn.classList.add('hidden');
+        }
+    }
     if (mobileSearchInput) mobileSearchInput.value = '';
+    
+    // Hide search results
     searchResults.classList.add('hidden');
-    contentArea.classList.remove('hidden');
+    
+    // RELOAD THE MAIN CONTENT instead of just showing it
+    showLoading();
+    contentArea.classList.add('hidden');
+    
+    console.log('✅ Search cleared, reloading main content');
+    
+    // Load fresh main content
+    loadVideos('all', 1, false); // append = false to reload completely
 }
 
 function hideSearchResults() {
@@ -434,8 +476,8 @@ function hideSearchResults() {
 }
 
 // Display videos
-function displayVideos(videos, append = false) {
-    console.log('🎬 Displaying videos...');
+function displayVideos(videos, append = false, category = 'all', hasMore = false, page = 1) {
+    console.log('🎬 Displaying videos:', videos.length, 'Append:', append, 'Page:', page, 'Has more:', hasMore);
     
     // Hide loading, show content
     loadingState.classList.add('hidden');
@@ -443,25 +485,80 @@ function displayVideos(videos, append = false) {
     emptyState.classList.add('hidden');
     
     if (!append) {
-        // Display latest videos (first 6)
-        displayLatestVideos(videos.slice(0, 6));
-        
-        // Display trending videos (most viewed)
-        const trending = [...videos].sort((a, b) => b.views - a.views).slice(0, 3);
-        displayTrendingVideos(trending);
-        
-        // Display by REAL categories from database
-        displayCategorySections(videos);
+        // First load - show latest videos and categories
+        displayLatestVideos(videos, category);
+        displayCategorySections(videos, category);
     } else {
-        // Append to existing category sections
-        displayLatestVideos(videos.slice(0, 6));
+        // Append mode - add to existing videos
+        appendVideosToCategories(videos, category);
+    }
+    
+    // ALWAYS show load more button for testing
+    if (loadMoreBtn) {
+        loadMoreBtn.classList.remove('hidden');
+        loadMoreBtn.querySelector('button').textContent = `Load More (Page ${page + 1})`;
     }
 }
 
-function displayLatestVideos(videos) {
+// Display pagination for main page (all categories)
+function displayMainPagination(hasMore, currentPage) {
+    const paginationContainer = document.getElementById('mainPaginationContainer');
+    
+    if (!paginationContainer) return;
+    
+    // Only show pagination if there are multiple pages
+    if (currentPage > 1 || hasMore) {
+        paginationContainer.innerHTML = `
+        <div class="flex justify-center mt-12 mb-8">
+            <div class="flex items-center space-x-4">
+                <!-- Previous Button -->
+                ${currentPage > 1 ? `
+                    <button onclick="loadVideos('all', ${currentPage - 1})" 
+                            class="px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200 font-medium">
+                        ← Previous
+                    </button>
+                ` : ''}
+                
+                <!-- Current Page -->
+                <span class="px-6 py-3 bg-purple-600 text-white rounded-lg font-medium">
+                    Page ${currentPage}
+                </span>
+                
+                <!-- Next Button -->
+                ${hasMore ? `
+                    <button onclick="loadVideos('all', ${currentPage + 1})" 
+                            class="px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200 font-medium">
+                        Next →
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+        `;
+    } else {
+        paginationContainer.innerHTML = '';
+    }
+}
+
+function displayLatestVideos(videos, currentCategory = 'all') {
     if (!latestVideos) return;
     
-    latestVideos.innerHTML = videos.map(video => `
+    // Don't show Latest Videos section when filtering by category
+    if (currentCategory !== 'all') {
+        latestVideos.innerHTML = '';
+        latestVideos.closest('section').classList.add('hidden');
+        return;
+    }
+    
+    // Show Latest Videos section for "All Categories"
+    latestVideos.closest('section').classList.remove('hidden');
+    
+    // Show LAST 6 videos (most recent) - CHANGED FROM 5 TO 6
+    const sortedVideos = [...videos].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const latestSixVideos = sortedVideos.slice(0, 6); // CHANGED TO 6
+    
+    console.log('📹 Displaying LATEST 6 videos:', latestSixVideos.length);
+    
+    latestVideos.innerHTML = latestSixVideos.map(video => `
         <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video._id}">
             <div class="relative">
                 <img src="${video.thumbnail}" 
@@ -524,30 +621,61 @@ function displayTrendingVideos(videos) {
     `).join('');
 }
 
-function displayCategorySections(videos) {
+// Get total video counts for each category from backend
+async function getTotalCategoryCounts() {
+    try {
+        console.log('🔍 Getting total category counts...');
+        
+        // Load ALL videos to count by category
+        const response = await fetch(`${API_BASE_URL}/videos?limit=1000`);
+        if (response.ok) {
+            const data = await response.json();
+            const allVideos = data.videos || [];
+            
+            // Count videos by category
+            const categoryCounts = {};
+            allVideos.forEach(video => {
+                if (video.category) {
+                    categoryCounts[video.category] = (categoryCounts[video.category] || 0) + 1;
+                }
+            });
+            
+            console.log('📊 Total category counts calculated:', categoryCounts);
+            return categoryCounts;
+        }
+        
+        throw new Error('Could not load videos for counting');
+        
+    } catch (error) {
+        console.error('❌ Error getting total category counts:', error);
+        
+        // Final fallback: return empty object (will use displayed count)
+        return {};
+    }
+}
+
+async function displayCategorySections(videos, currentFilterCategory = 'all') {
     if (!categorySections) return;
     
-    // Group videos by category
-    const categories = {};
-    videos.forEach(video => {
-        if (!categories[video.category]) {
-            categories[video.category] = [];
-        }
-        categories[video.category].push(video);
-    });
+    console.log('📊 Displaying category sections with videos:', videos.length, 'Filter:', currentFilterCategory);
     
-    // Create category sections
-    categorySections.innerHTML = Object.keys(categories).map(category => `
-        <section class="category-section mb-12">
+    // If filtering by a specific category, only show that category
+    if (currentFilterCategory !== 'all') {
+        console.log('🎯 Filtering to show only category:', currentFilterCategory);
+        
+        // Get total counts FIRST - before creating HTML
+        const totalCounts = await getTotalCategoryCounts();
+        const totalCount = totalCounts[currentFilterCategory] || videos.length;
+        
+        categorySections.innerHTML = `
+        <section class="category-section mb-12" data-category="${currentFilterCategory}">
             <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold text-gray-900 capitalize">${category}</h2>
-                <button onclick="loadVideosByCategory('${category}')" 
-                        class="text-purple-600 hover:text-purple-700 text-sm font-medium">
-                    View all
-                </button>
+                <h2 class="text-2xl font-bold text-gray-900 capitalize">${currentFilterCategory}</h2>
+                <span class="text-sm text-gray-500">${totalCount} videos</span>
             </div>
-            <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-                ${categories[category].slice(0, 6).map(video => `
+            
+            <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                ${videos.map(video => `
                     <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video._id}">
                         <div class="relative">
                             <img src="${video.thumbnail}" 
@@ -570,8 +698,271 @@ function displayCategorySections(videos) {
                 `).join('')}
             </div>
         </section>
-    `).join('');
+        `;
+        return;
+    }
+    
+    // Original code for showing ALL categories
+    console.log('📊 Displaying ALL categories');
+    
+    // Group videos by category
+    const categories = {};
+    videos.forEach(video => {
+        if (!categories[video.category]) {
+            categories[video.category] = [];
+        }
+        categories[video.category].push(video);
+    });
+    
+    console.log('📂 Categories found:', Object.keys(categories));
+    
+    // Get total counts FIRST - before creating HTML
+    const totalCounts = await getTotalCategoryCounts();
+    
+    // Create category sections with TOTAL counts
+    categorySections.innerHTML = Object.keys(categories).map(category => {
+        const categoryVideos = categories[category];
+        const totalCount = totalCounts[category] || categoryVideos.length;
+        
+        console.log(`🎯 Rendering category "${category}" with ${categoryVideos.length} videos (Total: ${totalCount})`);
+        
+        return `
+        <section class="category-section mb-12" data-category="${category}">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 capitalize">${category}</h2>
+                <span class="text-sm text-gray-500">${totalCount} videos</span>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                ${categoryVideos.map(video => `
+                    <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video._id}">
+                        <div class="relative">
+                            <img src="${video.thumbnail}" 
+                                 alt="${video.title}" 
+                                 class="w-full h-48 object-cover"
+                                 onerror="this.src='https://images.unsplash.com/photo-1574717024453-715e0b5cda7f?w=400&h=300&fit=crop'">
+                            <div class="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                                ${formatDuration(video.duration)}
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <h3 class="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">${video.title}</h3>
+                            <p class="text-gray-600 text-xs mb-1 capitalize">${video.category}</p>
+                            <div class="flex justify-between text-gray-500 text-xs">
+                                <span>${formatViews(video.views)} views</span>
+                                <span>${formatTimeAgo(video.createdAt)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </section>
+        `;
+    }).join('');
 }
+
+// Load total video counts for each category
+async function loadCategoryTotalCounts() {
+    try {
+        // Try to get total counts from a new API endpoint
+        const response = await fetch(`${API_BASE_URL}/categories/total-counts`);
+        
+        if (response.ok) {
+            const categoryCounts = await response.json();
+            console.log('📊 Total category counts:', categoryCounts);
+            
+            // Update each category count display
+            Object.keys(categoryCounts).forEach(category => {
+                const countElement = document.querySelector(`.category-count[data-category="${category}"]`);
+                if (countElement) {
+                    countElement.textContent = `${categoryCounts[category]} videos`;
+                }
+            });
+        } else {
+            // If the new endpoint doesn't exist, use fallback method
+            useFallbackCategoryCounts();
+        }
+    } catch (error) {
+        console.error('❌ Error loading category counts:', error);
+        // Use fallback if API fails
+        useFallbackCategoryCounts();
+    }
+}
+
+// Fallback method to get category counts
+async function useFallbackCategoryCounts() {
+    try {
+        // Load ALL videos to count by category
+        const response = await fetch(`${API_BASE_URL}/videos?limit=1000`);
+        if (response.ok) {
+            const data = await response.json();
+            const allVideos = data.videos;
+            
+            // Count videos by category
+            const categoryCounts = {};
+            allVideos.forEach(video => {
+                if (video.category) {
+                    categoryCounts[video.category] = (categoryCounts[video.category] || 0) + 1;
+                }
+            });
+            
+            console.log('📊 Fallback category counts:', categoryCounts);
+            
+            // Update each category count display
+            Object.keys(categoryCounts).forEach(category => {
+                const countElement = document.querySelector(`.category-count[data-category="${category}"]`);
+                if (countElement) {
+                    countElement.textContent = `${categoryCounts[category]} videos`;
+                }
+            });
+        }
+    } catch (error) {
+        console.error('❌ Error in fallback category counts:', error);
+        // Final fallback: show current displayed count
+        showCurrentDisplayedCounts();
+    }
+}
+
+// Show only the currently displayed counts
+function showCurrentDisplayedCounts() {
+    const categorySections = document.querySelectorAll('.category-section');
+    categorySections.forEach(section => {
+        const category = section.getAttribute('data-category');
+        const videosInSection = section.querySelectorAll('.video-card');
+        const countElement = section.querySelector('.category-count');
+        
+        if (countElement) {
+            countElement.textContent = `${videosInSection.length} videos`;
+        }
+    });
+}
+
+// Append videos to existing categories - FIXED VERSION
+function appendVideosToCategories(newVideos, category) {
+    console.log('📥 Appending', newVideos.length, 'new videos to categories');
+    
+    // Group new videos by category
+    const newCategories = {};
+    newVideos.forEach(video => {
+        if (!newCategories[video.category]) {
+            newCategories[video.category] = [];
+        }
+        newCategories[video.category].push(video);
+    });
+    
+    // Append to each existing category section
+    Object.keys(newCategories).forEach(categoryName => {
+        // Find the category section by looking for the category name in headings
+        const allHeadings = document.querySelectorAll('#categorySections h2');
+        let targetSection = null;
+        
+        allHeadings.forEach(heading => {
+            if (heading.textContent.toLowerCase().includes(categoryName.toLowerCase())) {
+                targetSection = heading.closest('.category-section');
+            }
+        });
+        
+        if (targetSection) {
+            const videoGrid = targetSection.querySelector('.grid');
+            const newVideosHTML = newCategories[categoryName].map(video => `
+                <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video._id}">
+                    <div class="relative">
+                        <img src="${video.thumbnail}" 
+                             alt="${video.title}" 
+                             class="w-full h-48 object-cover"
+                             onerror="this.src='https://images.unsplash.com/photo-1574717024453-715e0b5cda7f?w=400&h=300&fit=crop'">
+                        <div class="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                            ${formatDuration(video.duration)}
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <h3 class="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">${video.title}</h3>
+                        <p class="text-gray-600 text-xs mb-1 capitalize">${video.category}</p>
+                        <div class="flex justify-between text-gray-500 text-xs">
+                            <span>${formatViews(video.views)} views</span>
+                            <span>${formatTimeAgo(video.createdAt)}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            videoGrid.insertAdjacentHTML('beforeend', newVideosHTML);
+            
+            // DON'T update the video count - keep showing the TOTAL count
+            // The total count is already shown from displayCategorySections
+            console.log(`✅ Added ${newCategories[categoryName].length} videos to ${categoryName}`);
+        } else {
+            console.log('⚠️ Category section not found for:', categoryName);
+        }
+    });
+    
+    // Hide load more button if no more videos
+    if (loadMoreBtn && newVideos.length < 12) {
+        loadMoreBtn.classList.add('hidden');
+    }
+}
+
+// Generate page numbers for pagination
+function generatePageNumbers(currentPage, totalPages, category) {
+    const pages = [];
+    const maxVisiblePages = 5; // Show max 5 page numbers
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    // Adjust start page if we're near the end
+    if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    // First page
+    if (startPage > 1) {
+        pages.push(`
+            <button onclick="loadVideosByCategory('${category}', 1)" 
+                    class="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200 font-medium">
+                1
+            </button>
+        `);
+        if (startPage > 2) {
+            pages.push(`<span class="px-2 py-2 text-gray-500">...</span>`);
+        }
+    }
+    
+    // Page numbers
+    for (let i = startPage; i <= endPage; i++) {
+        if (i === currentPage) {
+            pages.push(`
+                <span class="px-3 py-2 bg-purple-600 text-white rounded-lg font-medium">
+                    ${i}
+                </span>
+            `);
+        } else {
+            pages.push(`
+                <button onclick="loadVideosByCategory('${category}', ${i})" 
+                        class="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200 font-medium">
+                    ${i}
+                </button>
+            `);
+        }
+    }
+    
+    // Last page
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            pages.push(`<span class="px-2 py-2 text-gray-500">...</span>`);
+        }
+        pages.push(`
+            <button onclick="loadVideosByCategory('${category}', ${totalPages})" 
+                    class="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition duration-200 font-medium">
+                ${totalPages}
+            </button>
+        `);
+    }
+    
+    return pages;
+}
+
+
 
 // Navigate to video page
 function navigateToVideo(videoId) {
@@ -697,7 +1088,7 @@ async function loadVideosByTag(tag) {
     await handleTagSearch(tag);
 }
 
-            // Handle tag search - FILTER BY SPECIFIC TAG
+// Handle tag search - FILTER BY SPECIFIC TAG
 async function handleTagSearch(tag) {
     try {
         showLoading();
@@ -803,6 +1194,34 @@ function setupCategoriesDropdown() {
     }
 }
 
+// Setup search clear button
+function setupSearchClearButton() {
+    const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    
+    if (searchInput && clearSearchBtn) {
+        // Show/hide clear button based on input
+        searchInput.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                clearSearchBtn.classList.remove('hidden');
+            } else {
+                clearSearchBtn.classList.add('hidden');
+                clearSearchResults();
+            }
+        });
+        
+        // Clear search when X is clicked
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clearSearchBtn.classList.add('hidden');
+            clearSearchResults();
+        });
+        
+        // Hide clear button on page load
+        clearSearchBtn.classList.add('hidden');
+    }
+}
+
 // Mobile backdrop functions
 function addMobileBackdrop() {
     let backdrop = document.getElementById('mobileBackdrop');
@@ -846,19 +1265,8 @@ async function initializePage() {
         loadVideos(); // Only load all videos if no filters
     }
 }
-// Debug: Check what's being rendered
-console.log('=== DEBUG: Checking video card elements ===');
-console.log('Latest videos container:', document.getElementById('latestVideos'));
-console.log('Category sections container:', document.getElementById('categorySections'));
 
-// Check after videos load
-setTimeout(() => {
-    const latestCards = document.querySelectorAll('#latestVideos [data-video-id]');
-    const categoryCards = document.querySelectorAll('#categorySections [data-video-id]');
-    console.log('Latest video cards found:', latestCards.length);
-    console.log('Category video cards found:', categoryCards.length);
-    console.log('All video cards should have same styling now');
-}, 2000);
+
 
 // Make functions globally available
 window.navigateToVideo = navigateToVideo;

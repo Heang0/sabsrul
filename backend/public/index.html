@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Add this with your other meta tags -->
+<meta name="rating" content="adult">
+<meta name="robots" content="noindex, nofollow">
     <title>SabSrul - Premium Videos</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -216,19 +219,27 @@
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <!-- Search Section -->
-        <div class="mb-8">
-            <div class="relative max-w-2xl mx-auto">
-                <div class="relative">
-                    <input 
-                        type="text" 
-                        id="searchInput"
-                        placeholder="Search videos..."
-                        class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-sm"
-                    >
-                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                </div>
-            </div>
+                <!-- Search Section -->
+<div class="mb-8">
+    <div class="relative max-w-2xl mx-auto">
+        <div class="relative">
+            <input 
+                type="text" 
+                id="searchInput"
+                placeholder="Search videos..."
+                class="w-full pl-12 pr-10 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-sm"
+            >
+            <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <!-- Clear button (X) -->
+            <button 
+                id="clearSearchBtn"
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden"
+            >
+                <i class="fas fa-times"></i>
+            </button>
         </div>
+    </div>
+</div>
 
         <!-- Categories Filter -->
         <div class="mb-8">
@@ -282,28 +293,120 @@
             <h3 class="text-lg font-semibold text-gray-900 mb-2">No Videos Available</h3>
             <p class="text-gray-500">Check back later for new content.</p>
         </div>
+                <!-- Load More Button -->
+<div id="loadMoreBtn" class="text-center mt-8">
+    <button class="bg-purple-600 text-white px-8 py-3 rounded-xl hover:bg-purple-700 transition duration-200 font-medium">
+        Load More Videos
+    </button>
+</div>
 
-        <!-- Load More Button -->
-        <div id="loadMoreBtn" class="hidden text-center mt-8">
-            <button class="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-50 transition duration-200 font-medium">
-                Load More Videos
-            </button>
+        <!-- Main Pagination Container -->
+        <div id="mainPaginationContainer">
+            <!-- Main pagination will be inserted here by JavaScript -->
         </div>
+
     </main>
 
-    <!-- Footer -->
+            <!-- Footer -->
     <footer class="bg-white border-t mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="text-center">
-                <div class="flex items-center justify-center space-x-3 mb-4">
-                    <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-play text-white text-xs"></i>
+            <!-- Main Footer Content -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <!-- Brand -->
+                <div class="md:col-span-1">
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-play text-white text-xs"></i>
+                        </div>
+                        <span class="text-lg font-bold text-gray-900">SabSrul</span>
                     </div>
-                    <span class="text-lg font-bold text-gray-900">SabSrul</span>
+                    <p class="text-gray-600 text-sm mb-4">
+                        Premium adult entertainment platform for mature audiences.
+                    </p>
+                    <div class="flex space-x-3">
+                        <a href="#" class="text-gray-400 hover:text-purple-600 transition-colors">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-purple-600 transition-colors">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-purple-600 transition-colors">
+                            <i class="fab fa-telegram"></i>
+                        </a>
+                    </div>
                 </div>
-                <p class="text-gray-500 text-sm">
-                    Premium video content platform
-                </p>
+
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-4">Platform</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="index.html" class="text-gray-600 hover:text-purple-600 transition-colors">Home</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Latest Videos</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Popular Videos</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Categories</a></li>
+                    </ul>
+                </div>
+
+                <!-- Support -->
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-4">Support</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Help Center</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Contact Us</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Report Content</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">DMCA</a></li>
+                    </ul>
+                </div>
+
+                <!-- Legal -->
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-4">Legal</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Content Policy</a></li>
+                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Age Warning & Legal Notice -->
+            <div class="border-t border-gray-200 pt-6">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                    <!-- Age Restriction Warning -->
+                    <div class="flex items-center space-x-2 text-sm text-red-600 font-medium">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>STRICTLY 18+ ADULTS ONLY</span>
+                    </div>
+                    
+                    <!-- Legal Disclaimers -->
+                    <div class="text-xs text-gray-500 space-y-1">
+                        <p>⚠️ You must be 18 years or older to access this website. By entering, you confirm you are of legal age.</p>
+                        <p>🔞 This website contains explicit adult content intended for mature audiences only.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Copyright & Compliance -->
+            <div class="border-t border-gray-200 pt-6 mt-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                    <!-- Copyright -->
+                    <div class="text-sm text-gray-500">
+                        <p>&copy; 2024 SabSrul. All rights reserved.</p>
+                    </div>
+
+                    <!-- Compliance Badges -->
+                    <div class="flex items-center space-x-4 text-xs">
+                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded">18+</span>
+                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded">Adult Content</span>
+                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded">Legal</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Legal Text (Small) -->
+            <div class="mt-4 text-xs text-gray-400">
+                <p>All models were 18 years of age or older at the time of depiction. All content is properly licensed and complies with applicable laws.</p>
             </div>
         </div>
     </footer>

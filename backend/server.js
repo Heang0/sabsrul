@@ -43,7 +43,22 @@ app.get('/api', (req, res) => {
         version: '1.0.0'
     });
 });
+// --- 6.5. Specific Frontend Routes ---
+// Serve video detail page
+app.get('/video/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'video.html'));
+});
 
+// Serve other specific pages
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.get('/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+// ... add other specific routes as needed
 // Primary Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/videos', videoRoutes);

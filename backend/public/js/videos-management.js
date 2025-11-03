@@ -141,7 +141,7 @@ function populateEditCategoryFilter() {
     });
 }
 
-// Load videos - FIXED AND WORKING
+// Load videos - UPDATED FOR ADMIN WITH DRAFTS
 async function loadVideos(page = 1) {
     showLoading();
     
@@ -160,18 +160,21 @@ async function loadVideos(page = 1) {
         if (category) params.append('category', category);
         if (status) params.append('status', status);
         
-        console.log('🔍 Loading videos with params:', params.toString());
+        console.log('🔍 Loading ADMIN videos with params:', params.toString());
         
-        const response = await fetch(`${API_BASE_URL}/videos?${params}`);
+        // USE THE NEW ADMIN ENDPOINT
+        const response = await fetch(`${API_BASE_URL}/videos/admin/all?${params}`, {
+            headers: getAuthHeaders()
+        });
         
-        console.log('📡 API Response status:', response.status);
+        console.log('📡 ADMIN API Response status:', response.status);
         
         if (!response.ok) {
-            throw new Error(`API returned ${response.status}: ${response.statusText}`);
+            throw new Error(`Admin API returned ${response.status}: ${response.statusText}`);
         }
         
         const data = await response.json();
-        console.log('✅ Videos loaded:', data.videos.length);
+        console.log('✅ ADMIN Videos loaded:', data.videos.length);
         
         videos = data.videos || [];
         currentPage = data.currentPage || page;
@@ -181,7 +184,7 @@ async function loadVideos(page = 1) {
         displayPagination();
         
     } catch (error) {
-        console.error('❌ Error loading videos:', error);
+        console.error('❌ Error loading admin videos:', error);
         showError('Failed to load videos: ' + error.message);
     }
 }
@@ -570,22 +573,30 @@ function showSuccess(message) {
     }, 5000);
 }
 
-// Auth functions
+// Auth functions - UPDATED
 function checkAuth() {
-    // For now, allow access without auth for testing
-    // In production, you should implement proper admin authentication
-    console.log('🔐 Auth check - allowing access for testing');
-    return true;
-    
-    // Uncomment this for production:
-    /*
     const token = localStorage.getItem('adminToken');
     if (!token) {
+        console.log('❌ No admin token found, redirecting to login');
         window.location.href = 'login.html';
         return false;
     }
+    
+    console.log('🔐 Admin token found, allowing access');
     return true;
-    */
+}
+
+function getAuthHeaders() {
+    const token = localStorage.getItem('adminToken');
+    if (token) {
+        return {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        };
+    }
+    return {
+        'Content-Type': 'application/json'
+    };
 }
 
 function getAuthHeaders() {

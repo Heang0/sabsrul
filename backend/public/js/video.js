@@ -47,8 +47,19 @@ let currentRelatedCategory = '';
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🎬 Video page loaded');
-    const urlParams = new URLSearchParams(window.location.search);
-    const videoId = urlParams.get('id');
+    
+    // Get video ID from URL - support both formats
+    let videoId;
+    const pathSegments = window.location.pathname.split('/');
+    
+    if (window.location.pathname.startsWith('/video/') && pathSegments.length > 2) {
+        // Clean URL format: /video/CB9RpD0f4o
+        videoId = pathSegments[2];
+    } else {
+        // Query parameter format: /video.html?id=CB9RpD0f4o
+        const urlParams = new URLSearchParams(window.location.search);
+        videoId = urlParams.get('id');
+    }
     
     console.log('Video ID:', videoId);
     
@@ -216,15 +227,22 @@ function displayCategories(categories) {
         `).join('');
     }
     
-    // Mobile categories menu
+    // Mobile categories menu - WITH ALL CATEGORIES
     if (mobileCategories) {
-        mobileCategories.innerHTML = categories.map(category => `
-            <a href="index.html?category=${category.slug || category.name}" 
+        mobileCategories.innerHTML = `
+            <a href="index.html?category=all" 
                class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg border border-gray-100">
                 <i class="fas fa-play-circle text-purple-500 mr-3 w-4"></i>
-                <span class="capitalize">${category.name}</span>
+                <span>All Categories</span>
             </a>
-        `).join('');
+            ${categories.map(category => `
+                <a href="index.html?category=${category.slug || category.name}" 
+                   class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg border border-gray-100">
+                    <i class="fas fa-play-circle text-purple-500 mr-3 w-4"></i>
+                    <span class="capitalize">${category.name}</span>
+                </a>
+            `).join('')}
+        `;
     }
 }
 
@@ -353,7 +371,7 @@ function displayVideo(video) {
     if (videoTitle) videoTitle.textContent = video.title || 'Untitled Video';
     if (videoViews) videoViews.textContent = `${formatViews(video.views || 0)} views`;
     if (videoDate) videoDate.textContent = formatTimeAgo(video.createdAt);
-    if (videoDescription) videoDescription.textContent = video.description || 'No description available.';
+    
     if (likeCount) likeCount.textContent = formatLikes(video.likes || 0);
     if (videoCategory) {
         const categoryName = formatCategoryName(video.category);
@@ -385,8 +403,14 @@ function displayVideo(video) {
     
     // Update page title
     document.title = `${video.title || 'Video'} - SabSrul`;
+     // Scroll to top for better UX
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Update browser history for clean back navigation
+    window.history.replaceState({}, '', `video.html?id=${video.shortId}`);
     
     console.log('✅ Video displayed successfully');
+
 }
 
 function setupVideoPlayer(video) {
@@ -885,7 +909,7 @@ async function loadRelatedVideos(videoId, category, page = 1, append = false) {
     }
 }
 
-// Display related videos - EXACT INDEX PAGE STYLING
+        // Display related videos - EXACT INDEX PAGE STYLING
 function displayRelatedVideos(videos, append = false) {
     console.log('📹 Displaying related videos:', videos.length, 'Append:', append);
     if (!relatedVideos) return;
@@ -1088,6 +1112,18 @@ function formatTimeAgo(dateString) {
         return 'Recently';
     }
 }
+// In video.js - track watch time
+let watchStartTime = Date.now();
+
+videoPlayer.addEventListener('play', function() {
+    watchStartTime = Date.now();
+});
+
+videoPlayer.addEventListener('pause', function() {
+    const watchTime = Math.round((Date.now() - watchStartTime) / 1000);
+    console.log(`User watched ${watchTime} seconds`);
+    // Send to analytics
+});
 
 // Make functions globally available
 window.filterByTag = filterByTag;

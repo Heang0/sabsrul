@@ -2,9 +2,9 @@ const Video = require('../models/Video');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
-const ffprobePath = require('@ffprobe-installer/ffprobe').path; // ADD THIS
+const ffprobePath = require('@ffprobe-installer/ffprobe').path;
 ffmpeg.setFfmpegPath(ffmpegPath);
-ffmpeg.setFfprobePath(ffprobePath); // ADD THIS
+ffmpeg.setFfprobePath(ffprobePath);
 const fs = require('fs');
 const path = require('path');
 
@@ -18,13 +18,67 @@ const r2Client = new S3Client({
   }
 });
 
+// Video compression function
+const compressVideo = (inputBuffer, outputPath) => {
+  return new Promise((resolve, reject) => {
+    // Save buffer to temp file first
+    const tempInputPath = `./temp_thumbs/input_${Date.now()}.mp4`;
+    fs.writeFileSync(tempInputPath, inputBuffer);
+
+    console.log('🎬 Starting video compression...');
+    
+    ffmpeg(tempInputPath)
+      .videoCodec('libx264')
+      .audioCodec('aac')
+      .outputOptions([
+        '-crf 23', // Constant Rate Factor (23 is good balance)
+        '-preset medium', // Encoding speed vs compression
+        '-movflags +faststart', // Enable streaming
+        '-maxrate 1000k', // Maximum bitrate
+        '-bufsize 2000k' // Buffer size
+      ])
+      .on('start', (commandLine) => {
+        console.log('🚀 FFmpeg compression started');
+      })
+      .on('progress', (progress) => {
+        if (progress.percent) {
+          console.log(`📊 Compression progress: ${Math.round(progress.percent)}%`);
+        }
+      })
+      .on('end', () => {
+        console.log('✅ Video compression completed');
+        // Read compressed video
+        const compressedBuffer = fs.readFileSync(outputPath);
+        
+        // Cleanup temp files
+        fs.unlinkSync(tempInputPath);
+        fs.unlinkSync(outputPath);
+        
+        resolve(compressedBuffer);
+      })
+      .on('error', (error) => {
+        console.error('❌ Compression error:', error);
+        
+        // Cleanup on error
+        try {
+          if (fs.existsSync(tempInputPath)) fs.unlinkSync(tempInputPath);
+          if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
+        } catch (cleanupError) {
+          console.error('Cleanup error:', cleanupError);
+        }
+        
+        reject(error);
+      })
+      .save(outputPath);
+  });
+};
 
 // Get all videos - FIXED WITH CATEGORY FILTER
 exports.getVideos = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-    const category = req.query.category; // ADD THIS LINE
+    const category = req.query.category;
     const skip = (page - 1) * limit;
 
     // Build filter object - ADD CATEGORY FILTERING
@@ -56,17 +110,29 @@ exports.getVideos = async (req, res) => {
   }
 };
 
-// Get single video
 exports.getVideo = async (req, res) => {
-  try {
-    const video = await Video.findById(req.params.id);
-    if (!video) {
-      return res.status(404).json({ message: 'Video not found' });
+    try {
+        const { id } = req.params;
+        
+        let video;
+        
+        // Check if it's a valid MongoDB ObjectId (24 character hex string)
+        if (id.match(/^[0-9a-fA-F]{24}$/)) {
+            video = await Video.findById(id);
+        } else {
+            // If not ObjectId, search by shortId
+            video = await Video.findOne({ shortId: id });
+        }
+        
+        if (!video) {
+            return res.status(404).json({ error: 'Video not found' });
+        }
+        
+        res.json(video);
+    } catch (error) {
+        console.error('Error fetching video:', error);
+        res.status(500).json({ error: 'Server error fetching video' });
     }
-    res.json(video);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching video: ' + error.message });
-  }
 };
 
 // Search videos - IMPROVED
@@ -112,63 +178,107 @@ exports.searchVideos = async (req, res) => {
   }
 };
 
-// Get related videos
 exports.getRelatedVideos = async (req, res) => {
-  try {
-    const video = await Video.findById(req.params.id);
-    if (!video) {
-      return res.status(404).json({ message: 'Video not found' });
+    try {
+        const { id } = req.params;
+        
+        // First, find the current video to get its category
+        let currentVideo;
+        if (id.match(/^[0-9a-fA-F]{24}$/)) {
+            currentVideo = await Video.findById(id);
+        } else {
+            currentVideo = await Video.findOne({ shortId: id });
+        }
+        
+        if (!currentVideo) {
+            return res.status(404).json({ error: 'Video not found' });
+        }
+        
+        // Find related videos (same category, exclude current video)
+        const relatedVideos = await Video.find({
+            category: currentVideo.category,
+            _id: { $ne: currentVideo._id }, // Exclude current video
+            status: 'published'
+        }).limit(10).sort({ createdAt: -1 });
+        
+        res.json(relatedVideos);
+    } catch (error) {
+        console.error('Error fetching related videos:', error);
+        res.status(500).json({ error: 'Server error' });
     }
-
-    const relatedVideos = await Video.find({
-      _id: { $ne: video._id },
-      category: video.category,
-      status: 'published'
-    })
-    .limit(6)
-    .select('title thumbnail duration views likes')
-    .sort({ views: -1 });
-
-    res.json(relatedVideos);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching related videos: ' + error.message });
-  }
 };
 
-// Increment views
+// Temporary function to add shortId to existing videos
+exports.addShortIdsToExistingVideos = async (req, res) => {
+    try {
+        const videos = await Video.find({ shortId: { $exists: false } });
+        console.log(`Found ${videos.length} videos without shortId`);
+        
+        for (let video of videos) {
+            // Generate a short ID (you can use any method)
+            const shortId = Math.random().toString(36).substr(2, 9);
+            video.shortId = shortId;
+            await video.save();
+            console.log(`Added shortId ${shortId} to video: ${video.title}`);
+        }
+        
+        res.json({ message: `Added shortIds to ${videos.length} videos` });
+    } catch (error) {
+        console.error('Error adding shortIds:', error);
+        res.status(500).json({ error: 'Failed to add shortIds' });
+    }
+};
 exports.incrementViews = async (req, res) => {
-  try {
-    const video = await Video.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { views: 1 } },
-      { new: true }
-    ).select('views');
-
-    if (!video) {
-      return res.status(404).json({ message: 'Video not found' });
+    try {
+        const { id } = req.params;
+        
+        let video;
+        if (id.match(/^[0-9a-fA-F]{24}$/)) {
+            video = await Video.findById(id);
+        } else {
+            video = await Video.findOne({ shortId: id });
+        }
+        
+        if (!video) {
+            return res.status(404).json({ error: 'Video not found' });
+        }
+        
+        video.views += 1;
+        await video.save();
+        
+        res.json({ views: video.views });
+    } catch (error) {
+        console.error('Error incrementing views:', error);
+        res.status(500).json({ error: 'Server error' });
     }
-    res.json({ views: video.views });
-  } catch (error) {
-    res.status(500).json({ message: 'Error incrementing views: ' + error.message });
-  }
 };
 
-// Like video
 exports.likeVideo = async (req, res) => {
-  try {
-    const video = await Video.findById(req.params.id);
-    if (!video) {
-      return res.status(404).json({ message: 'Video not found' });
+    try {
+        const { id } = req.params;
+        
+        let video;
+        if (id.match(/^[0-9a-fA-F]{24}$/)) {
+            video = await Video.findById(id);
+        } else {
+            video = await Video.findOne({ shortId: id });
+        }
+        
+        if (!video) {
+            return res.status(404).json({ error: 'Video not found' });
+        }
+        
+        video.likes += 1;
+        await video.save();
+        
+        res.json({ likes: video.likes });
+    } catch (error) {
+        console.error('Error liking video:', error);
+        res.status(500).json({ error: 'Server error' });
     }
-    video.likes += 1;
-    await video.save();
-    res.json({ likes: video.likes });
-  } catch (error) {
-    res.status(500).json({ message: 'Error liking video: ' + error.message });
-  }
 };
 
-// UPLOAD VIDEO WITH 6 AUTO-THUMBNAILS
+// UPLOAD VIDEO WITH COMPRESSION AND AUTO-THUMBNAILS
 exports.uploadVideo = async (req, res) => {
   try {
     console.log('📤 Uploading video to Cloudflare R2...');
@@ -180,155 +290,169 @@ exports.uploadVideo = async (req, res) => {
     const { title, description, category, tags, selectedThumbnail } = req.body;
     const videoFile = req.files.video[0];
 
-    // DEBUG: Check ffmpeg setup
-    console.log('🖼️ Starting thumbnail generation...');
-    console.log('📁 Video buffer size:', videoFile.buffer.length);
-    console.log('🔧 ffmpeg path:', ffmpegPath);
-    console.log('📝 Video details:', { title, category });
-    console.log('📊 File size:', (videoFile.buffer.length / 1024 / 1024).toFixed(2), 'MB');
+    console.log('🖼️ Starting video processing...');
+    console.log('📁 Original video size:', (videoFile.buffer.length / 1024 / 1024).toFixed(2), 'MB');
 
-    // Upload video to R2 first
-    const videoKey = `videos/${Date.now()}_${videoFile.originalname}`;
+    // Ensure temp directory exists
+    const tempDir = './temp_thumbs';
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    // COMPRESS VIDEO BEFORE UPLOAD
+    let finalVideoBuffer = videoFile.buffer;
+    const compressedVideoPath = `./temp_thumbs/compressed_${Date.now()}.mp4`;
+    
+    try {
+      console.log('🎬 Compressing video (10-20% size reduction)...');
+      finalVideoBuffer = await compressVideo(videoFile.buffer, compressedVideoPath);
+      console.log('✅ Video compressed. New size:', (finalVideoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
+      
+      const sizeReduction = ((videoFile.buffer.length - finalVideoBuffer.length) / videoFile.buffer.length * 100).toFixed(1);
+      console.log(`📉 Size reduced by: ${sizeReduction}%`);
+      
+    } catch (compressionError) {
+      console.log('⚠️ Compression failed, using original video:', compressionError.message);
+      // Continue with original video if compression fails
+      finalVideoBuffer = videoFile.buffer;
+    }
+
+    // Upload COMPRESSED video to R2
+    const videoKey = `videos/${Date.now()}_${videoFile.originalname.replace(/\.[^/.]+$/, '')}_compressed.mp4`;
     const videoUploadParams = {
       Bucket: process.env.R2_BUCKET_NAME,
       Key: videoKey,
-      Body: videoFile.buffer,
+      Body: finalVideoBuffer,
       ContentType: videoFile.mimetype,
       ACL: 'public-read'
     };
 
-    console.log('☁️ Uploading video to R2...');
+    console.log('☁️ Uploading compressed video to R2...');
     await r2Client.send(new PutObjectCommand(videoUploadParams));
     const videoUrl = `${process.env.R2_PUBLIC_URL}/${videoKey}`;
-    console.log('✅ Video uploaded to R2:', videoUrl);
+    console.log('✅ Compressed video uploaded to R2:', videoUrl);
 
-        // GENERATE 6 THUMBNAILS AT DIFFERENT TIMESTAMPS
-let thumbnails = [];
-let selectedThumbnailUrl = `${process.env.R2_PUBLIC_URL}/default-thumbnail.jpg`;
+    // GENERATE 6 THUMBNAILS AT DIFFERENT TIMESTAMPS
+    let thumbnails = [];
+    let selectedThumbnailUrl = `${process.env.R2_PUBLIC_URL}/default-thumbnail.jpg`;
 
-try {
-  console.log('🖼️ Generating 6 thumbnails from video...');
-  
-  // Create temp directory for thumbnails
-  const tempDir = './temp_thumbs';
-  if (!fs.existsSync(tempDir)) {
-    fs.mkdirSync(tempDir, { recursive: true });
-  }
+    try {
+      console.log('🖼️ Generating 6 thumbnails from compressed video...');
+      
+      // Use compressed video for thumbnails (smaller = faster processing)
+      const tempVideoPath = `./temp_thumbs/video_${Date.now()}.mp4`;
+      fs.writeFileSync(tempVideoPath, finalVideoBuffer);
+      console.log('📁 Temporary compressed video file created for thumbnails');
 
-  // Save video buffer to temporary file first (Windows fix)
-  const tempVideoPath = `./temp_thumbs/video_${Date.now()}.mp4`;
-  fs.writeFileSync(tempVideoPath, videoFile.buffer);
-  console.log('📁 Temporary video file created');
-
-  // Generate 6 thumbnails at different timestamps
-  const thumbBuffers = await new Promise((resolve, reject) => {
-    console.log('🎬 Starting ffmpeg process with temp file...');
-    
-    ffmpeg(tempVideoPath)
-      .screenshots({
-        count: 6,
-        timestamps: ['10%', '25%', '40%', '55%', '70%', '85%'],
-        filename: 'thumb_%i.jpg',
-        folder: tempDir,
-        size: '800x450'
-      })
-      .on('start', (commandLine) => {
-        console.log('🚀 FFmpeg process started');
-      })
-      .on('end', () => {
-        console.log('✅ Thumbnails generated successfully');
-        const buffers = [];
-        try {
-          // Read generated thumbnails
-          for (let i = 1; i <= 6; i++) {
-            const thumbPath = `./temp_thumbs/thumb_${i}.jpg`;
-            if (fs.existsSync(thumbPath)) {
-              const buffer = fs.readFileSync(thumbPath);
-              buffers.push(buffer);
-              // Clean up individual thumbnail file
-              fs.unlinkSync(thumbPath);
+      // Generate 6 thumbnails at different timestamps
+      const thumbBuffers = await new Promise((resolve, reject) => {
+        console.log('🎬 Starting ffmpeg thumbnail generation...');
+        
+        ffmpeg(tempVideoPath)
+          .screenshots({
+            count: 6,
+            timestamps: ['10%', '25%', '40%', '55%', '70%', '85%'],
+            filename: 'thumb_%i.jpg',
+            folder: tempDir,
+            size: '800x450'
+          })
+          .on('start', (commandLine) => {
+            console.log('🚀 FFmpeg thumbnail process started');
+          })
+          .on('end', () => {
+            console.log('✅ Thumbnails generated successfully');
+            const buffers = [];
+            try {
+              // Read generated thumbnails
+              for (let i = 1; i <= 6; i++) {
+                const thumbPath = `./temp_thumbs/thumb_${i}.jpg`;
+                if (fs.existsSync(thumbPath)) {
+                  const buffer = fs.readFileSync(thumbPath);
+                  buffers.push(buffer);
+                  // Clean up individual thumbnail file
+                  fs.unlinkSync(thumbPath);
+                }
+              }
+              
+              // Clean up temp video file
+              fs.unlinkSync(tempVideoPath);
+              
+              if (buffers.length > 0) {
+                resolve(buffers);
+              } else {
+                reject(new Error('No thumbnails were generated'));
+              }
+            } catch (fileError) {
+              reject(fileError);
             }
-          }
-          
-          // Clean up temp video file
-          fs.unlinkSync(tempVideoPath);
-          
-          if (buffers.length > 0) {
-            resolve(buffers);
-          } else {
-            reject(new Error('No thumbnails were generated'));
-          }
-        } catch (fileError) {
-          reject(fileError);
-        }
-      })
-      .on('error', (error) => {
-        console.error('❌ FFmpeg error:', error.message);
-        // Clean up on error
-        try {
-          if (fs.existsSync(tempVideoPath)) {
-            fs.unlinkSync(tempVideoPath);
-          }
-        } catch (cleanupError) {
-          console.error('Cleanup error:', cleanupError);
-        }
-        reject(error);
+          })
+          .on('error', (error) => {
+            console.error('❌ FFmpeg thumbnail error:', error.message);
+            // Clean up on error
+            try {
+              if (fs.existsSync(tempVideoPath)) {
+                fs.unlinkSync(tempVideoPath);
+              }
+            } catch (cleanupError) {
+              console.error('Cleanup error:', cleanupError);
+            }
+            reject(error);
+          });
       });
-  });
 
-  console.log('✅ Thumbnail buffers created:', thumbBuffers.length);
+      console.log('✅ Thumbnail buffers created:', thumbBuffers.length);
 
-  // Upload all 6 thumbnails to R2
-  console.log('☁️ Uploading thumbnails to R2...');
-  for (let i = 0; i < thumbBuffers.length; i++) {
-    const thumbKey = `thumbnails/${Date.now()}_thumb_${i + 1}.jpg`;
-    const thumbUploadParams = {
-      Bucket: process.env.R2_BUCKET_NAME,
-      Key: thumbKey,
-      Body: thumbBuffers[i],
-      ContentType: 'image/jpeg',
-      ACL: 'public-read'
-    };
+      // Upload all 6 thumbnails to R2
+      console.log('☁️ Uploading thumbnails to R2...');
+      for (let i = 0; i < thumbBuffers.length; i++) {
+        const thumbKey = `thumbnails/${Date.now()}_thumb_${i + 1}.jpg`;
+        const thumbUploadParams = {
+          Bucket: process.env.R2_BUCKET_NAME,
+          Key: thumbKey,
+          Body: thumbBuffers[i],
+          ContentType: 'image/jpeg',
+          ACL: 'public-read'
+        };
 
-    await r2Client.send(new PutObjectCommand(thumbUploadParams));
-    const thumbUrl = `${process.env.R2_PUBLIC_URL}/${thumbKey}`;
-    thumbnails.push(thumbUrl);
-    
-    console.log(`✅ Thumbnail ${i + 1} uploaded:`, thumbUrl);
-    
-    // Use first thumbnail as default selected
-    if (i === 0) {
-      selectedThumbnailUrl = thumbUrl;
+        await r2Client.send(new PutObjectCommand(thumbUploadParams));
+        const thumbUrl = `${process.env.R2_PUBLIC_URL}/${thumbKey}`;
+        thumbnails.push(thumbUrl);
+        
+        console.log(`✅ Thumbnail ${i + 1} uploaded:`, thumbUrl);
+        
+        // Use first thumbnail as default selected
+        if (i === 0) {
+          selectedThumbnailUrl = thumbUrl;
+        }
+      }
+
+      console.log('✅ All 6 thumbnails generated and uploaded');
+
+    } catch (thumbError) {
+      console.log('⚠️ Thumbnail generation failed:', thumbError.message);
+      
+      // SIMPLE FALLBACK - No category colors needed
+      for (let i = 0; i < 6; i++) {
+        thumbnails.push(`https://via.placeholder.com/800x450/1a1a1a/6b7280?text=${encodeURIComponent(title)}+${i + 1}`);
+      }
+      selectedThumbnailUrl = thumbnails[0];
+      
+      console.log('🔄 Using fallback thumbnails');
     }
-  }
 
-  console.log('✅ All 6 thumbnails generated and uploaded');
-
-} catch (thumbError) {
-  console.log('⚠️ Thumbnail generation failed:', thumbError.message);
-  
-  // SIMPLE FALLBACK - No category colors needed
-  for (let i = 0; i < 6; i++) {
-    thumbnails.push(`https://via.placeholder.com/800x450/1a1a1a/6b7280?text=${encodeURIComponent(title)}+${i + 1}`);
-  }
-  selectedThumbnailUrl = thumbnails[0];
-  
-  console.log('🔄 Using fallback thumbnails');
-}
-
-        // Use selected thumbnail if provided, otherwise use first one
+    // Use selected thumbnail if provided, otherwise use first one
     const finalThumbnail = selectedThumbnail || selectedThumbnailUrl;
 
-    // EXTRACT VIDEO DURATION - Create a new temp file for duration extraction
+    // EXTRACT VIDEO DURATION from compressed video
     let videoDuration = 0;
     let durationTempPath = '';
     
     try {
-        console.log('⏱️ Extracting video duration...');
+        console.log('⏱️ Extracting video duration from compressed video...');
         
         // Create a new temporary file for duration extraction
         durationTempPath = `./temp_thumbs/duration_${Date.now()}.mp4`;
-        fs.writeFileSync(durationTempPath, videoFile.buffer);
+        fs.writeFileSync(durationTempPath, finalVideoBuffer);
         console.log('📁 Duration temp file created:', fs.existsSync(durationTempPath));
 
         // Get duration using ffprobe
@@ -352,7 +476,7 @@ try {
         console.log('⚠️ Could not extract duration:', durationError.message);
         
         // Estimate duration based on file size (fallback)
-        const fileSizeMB = videoFile.buffer.length / (1024 * 1024);
+        const fileSizeMB = finalVideoBuffer.length / (1024 * 1024);
         const estimatedMinutes = Math.max(1, Math.round(fileSizeMB / 2)); // ~2MB per minute
         videoDuration = estimatedMinutes * 60;
         console.log('⏱️ Using estimated duration:', videoDuration, 'seconds');
@@ -374,13 +498,14 @@ try {
         videoUrl: videoUrl,
         thumbnail: finalThumbnail,
         thumbnails: thumbnails,
-        duration: videoDuration,  // ← NOW USING REAL DURATION
+        duration: videoDuration,
         category: category.toLowerCase(),
         tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
         views: 0,
         likes: 0,
         status: 'published',
-        fileSize: videoFile.buffer.length
+        fileSize: finalVideoBuffer.length, // Store compressed file size
+        originalFileSize: videoFile.buffer.length // Store original size for comparison
     });
 
     await video.save();
@@ -388,13 +513,16 @@ try {
     
     res.status(201).json({
       success: true,
-      message: 'Video uploaded with 6 auto-thumbnails!',
+      message: 'Video compressed and uploaded with 6 auto-thumbnails!',
       video: {
         id: video._id,
         title: video.title,
         url: video.videoUrl,
         thumbnail: finalThumbnail,
-        allThumbnails: thumbnails
+        allThumbnails: thumbnails,
+        originalSize: (videoFile.buffer.length / 1024 / 1024).toFixed(2),
+        compressedSize: (finalVideoBuffer.length / 1024 / 1024).toFixed(2),
+        sizeReduction: ((videoFile.buffer.length - finalVideoBuffer.length) / videoFile.buffer.length * 100).toFixed(1) + '%'
       }
     });
 
@@ -434,6 +562,57 @@ exports.updateVideo = async (req, res) => {
   }
 };
 
+// Get videos for admin (including drafts)
+exports.getAdminVideos = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const category = req.query.category;
+    const status = req.query.status; // NEW: Add status filter
+    const search = req.query.q;
+    const skip = (page - 1) * limit;
+
+    // Build filter object for admin
+    let filter = {};
+    
+    // Status filter
+    if (status && status !== '') {
+      filter.status = status;
+    }
+    
+    // Category filter
+    if (category && category !== '') {
+      filter.category = category.toLowerCase();
+    }
+    
+    // Search filter
+    if (search && search !== '') {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    console.log(`🔍 Admin fetching videos with filter:`, filter);
+
+    const videos = await Video.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Video.countDocuments(filter);
+
+    res.json({
+      videos,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalVideos: total
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching admin videos: ' + error.message });
+  }
+};
+
 // Delete video
 exports.deleteVideo = async (req, res) => {
   try {
@@ -456,4 +635,6 @@ exports.extractFrames = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Error extracting frames: ' + error.message });
   }
-};
+  };
+
+  

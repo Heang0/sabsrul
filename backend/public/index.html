@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Add this with your other meta tags -->
-<meta name="rating" content="adult">
-<meta name="robots" content="noindex, nofollow">
+    <meta name="rating" content="adult">
+    <meta name="robots" content="noindex, nofollow">
     <title>SabSrul - Premium Videos</title>
-    
+    <link rel="icon" href="img/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script>
         tailwind.config = {
             theme: {
@@ -30,386 +29,377 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    
+    <style>
+        /* Prevent scrolling when age modal is open */
+        body.age-modal-open {
+            overflow: hidden;
+        }
+    </style>
 </head>
-<style>
-    /* ===== MOBILE STYLING ===== */
-    @media (max-width: 639px) {
-        /* Force 2 columns on ALL grids on mobile */
-        #latestVideos,
-        #searchResultsGrid,
-        #categorySections .grid,
-        .category-section .grid,
-        .video-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-            display: grid !important;
-            gap: 0.5rem !important;
-        }
-        
-        /* Make ALL video cards the same */
-        .video-card,
-        [data-video-id],
-        #latestVideos > div,
-        #searchResultsGrid > div,
-        #categorySections .grid > div,
-        .category-section .grid > div {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            width: 100% !important;
-        }
-        
-        /* Mobile image height */
-        .video-card img,
-        [data-video-id] img,
-        #latestVideos img,
-        #searchResultsGrid img,
-        #categorySections img,
-        .category-section img {
-            height: 7rem !important;
-            width: 100% !important;
-            object-fit: cover !important;
-        }
-    }
-
-    /* ===== DESKTOP/LAPTOP STYLING ===== */
-    @media (min-width: 640px) {
-        /* Increase height for desktop */
-        .video-card img,
-        [data-video-id] img,
-        #latestVideos img,
-        #searchResultsGrid img,
-        #categorySections img,
-        .category-section img {
-            height: 10rem !important; /* Increased from 7rem to 10rem for desktop */
-            width: 100% !important;
-            object-fit: cover !important;
-        }
-    }
-
-    /* ===== UNIVERSAL STYLING (applies to all screens) ===== */
-    
-    /* Remove any white backgrounds and borders */
-    .video-card,
-    [data-video-id],
-    #latestVideos > div,
-    #searchResultsGrid > div,
-    #categorySections .grid > div,
-    .category-section .grid > div {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    
-    /* Clean text styling */
-    .video-card > div:not(.relative),
-    [data-video-id] > div:not(.relative) {
-        padding: 0.5rem 0.25rem 0 0.25rem !important;
-        margin: 0 !important;
-    }
-    
-    /* Video title */
-    .video-card h3,
-    [data-video-id] h3 {
-        font-size: 0.8rem !important;
-        line-height: 1.2 !important;
-        margin-bottom: 0.25rem !important;
-        display: -webkit-box !important;
-        -webkit-line-clamp: 2 !important;
-        -webkit-box-orient: vertical !important;
-        overflow: hidden !important;
-        font-weight: 600 !important;
-        color: #1f2937 !important;
-    }
-    
-    /* Category text */
-    .video-card p.text-gray-600,
-    [data-video-id] p.text-gray-600 {
-        font-size: 0.7rem !important;
-        margin-bottom: 0.25rem !important;
-        color: #6b7280 !important;
-        text-transform: capitalize !important;
-    }
-    
-    /* Views and date */
-    .video-card .flex.justify-between,
-    [data-video-id] .flex.justify-between {
-        font-size: 0.65rem !important;
-        color: #9ca3af !important;
-        margin-top: 0.25rem !important;
-    }
-    
-    /* Hover effects */
-    .video-card:hover img,
-    [data-video-id]:hover img {
-        box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.15) !important;
-        transform: scale(1.02) !important;
-    }
-    
-    /* Grid gaps */
-    #latestVideos,
-    #searchResultsGrid,
-    #categorySections .grid,
-    .category-section .grid,
-    .video-grid,
-    .grid {
-        gap: 0.5rem !important;
-    }
-</style>
 <body class="bg-gray-50 font-inter">
-<!-- Clean Navigation -->
-<nav class="bg-white shadow-sm border-b sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-            <!-- Logo -->
-            <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-play text-white text-xs"></i>
-                </div>
-                <span class="text-xl font-bold text-gray-900">SabSrul</span>
-            </div>
-
-            <!-- Desktop Categories -->
-            <div class="hidden lg:flex items-center space-x-6">
-                <div class="relative group" id="categoriesDropdown">
-                    <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100">
-                        <span>Categories</span>
-                        <i class="fas fa-chevron-down text-xs mt-1"></i>
-                    </button>
-                    <div id="desktopCategoriesMenu" class="absolute hidden right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-3 z-50">
-                        <div id="desktopCategories">
-                            <!-- Categories loaded dynamically -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mobile Menu Button (HAMBURGER ICON) -->
-            <button id="mobileMenuButton" class="lg:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
-
-        <!-- Mobile Menu -->
-        <div id="mobileMenu" class="lg:hidden hidden border-t border-gray-200 py-4">
-            <div class="space-y-2">
-                <!-- Categories Section in Mobile -->
-                <div class="px-3 py-2">
-                    <h3 class="text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">Categories</h3>
-                    <div id="mobileCategories" class="space-y-1">
-                        <!-- Categories loaded dynamically -->
-                    </div>
+    <!-- AGE VERIFICATION MODAL - FIRST THING USERS SEE -->
+    <!-- AGE VERIFICATION MODAL - FIRST THING USERS SEE -->
+<div id="ageVerificationModal" class="fixed inset-0 bg-black flex items-center justify-center z-[100] hidden">
+        <div class="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl">
+            <div class="text-center">
+                <!-- Warning Icon -->
+                <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-red-100 mb-6">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-3xl"></i>
                 </div>
                 
-                <!-- Home Link with Icon -->
-                <div class="border-t border-gray-200 pt-2 mt-2">
-                    <a href="index.html" class="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg">
-                        <i class="fas fa-home mr-3 w-4"></i>
-                        Home
-                    </a>
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Age Verification Required</h2>
+                
+                <p class="text-gray-600 mb-2 text-lg">
+                    You must be <span class="font-bold text-red-600">18 years or older</span> to enter this website.
+                </p>
+                
+                <p class="text-gray-500 mb-6 text-sm">
+                    This site contains explicit adult content intended for mature audiences only.
+                </p>
+                
+                <div class="flex flex-col space-y-4">
+                    <button 
+                        onclick="confirmAge()"
+                        class="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-lg text-lg transition duration-200 transform hover:scale-105"
+                    >
+                        ✅ I AM 18+ - ENTER SITE
+                    </button>
+                    
+                    <button 
+                        onclick="rejectAge()"
+                        class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-6 rounded-lg transition duration-200"
+                    >
+                        🚫 I'M UNDER 18 - EXIT
+                    </button>
                 </div>
+                
+                <p class="text-xs text-gray-400 mt-4">
+                    By entering, you confirm you are of legal age and agree to our 
+                    <a href="#" class="text-red-600 hover:underline">Terms of Service</a> and 
+                    <a href="#" class="text-red-600 hover:underline">Privacy Policy</a>.
+                </p>
             </div>
         </div>
     </div>
-</nav>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <!-- Search Section -->
-                <!-- Search Section -->
-<div class="mb-8">
-    <div class="relative max-w-2xl mx-auto">
-        <div class="relative">
-            <input 
-                type="text" 
-                id="searchInput"
-                placeholder="Search videos..."
-                class="w-full pl-12 pr-10 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-sm"
-            >
-            <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-            <!-- Clear button (X) -->
-            <button 
-                id="clearSearchBtn"
-                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden"
-            >
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    </div>
-</div>
+    <!-- WEBSITE CONTENT - HIDDEN UNTIL AGE VERIFICATION -->
+    <div id="websiteContent" class="hidden">
+        <!-- Clean Navigation -->
+        <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo -->
+                            <!-- Logo -->
+                        <div class="flex items-center space-x-3">
+                            <img src="img/sabsrul.png" alt="SabSrul" class="h-8 w-auto">
+                            <span class="text-xl font-bold text-gray-900">SabSrul</span>
+                        </div>
 
-        <!-- Categories Filter -->
-        <div class="mb-8">
-            <div id="categoriesContainer" class="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
+                    <!-- Desktop Categories -->
+                    <div class="hidden lg:flex items-center space-x-6">
+                        <div class="relative group" id="categoriesDropdown">
+                            <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100">
+                                <span>Categories</span>
+                                <i class="fas fa-chevron-down text-xs mt-1"></i>
+                            </button>
+                            <div id="desktopCategoriesMenu" class="absolute hidden right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-3 z-50">
+                                <div id="desktopCategories">
+                                    <!-- Categories loaded dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Menu Button (HAMBURGER ICON) -->
+                    <button id="mobileMenuButton" class="lg:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+
+                <!-- Mobile Menu -->
+                        <!-- Mobile Menu -->
+<div id="mobileMenu" class="lg:hidden hidden absolute top-16 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
+    <div class="px-4 py-6 space-y-6 max-h-[70vh] overflow-y-auto">
+        <!-- Categories Section -->
+        <div>
+            <h3 class="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide px-2">Categories</h3>
+            <div id="mobileCategories" class="space-y-2">
                 <!-- Categories loaded dynamically -->
             </div>
         </div>
-
-        <!-- Search Results -->
-        <!-- Search Results -->
-<div id="searchResults" class="hidden mb-8">
-    <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">Search Results</h2>
-        <button id="clearSearch" class="text-gray-500 hover:text-gray-700 text-sm font-medium">
-            Clear Search
-        </button>
+        
+        <!-- Home Link -->
+        <div class="border-t border-gray-200 pt-4">
+            <a href="index.html" class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg">
+                <i class="fas fa-home text-purple-500 mr-3 w-4"></i>
+                <span>Home</span>
+            </a>
+        </div>
     </div>
-    <div id="searchResultsGrid" class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-        <!-- Search results loaded here -->
+</div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <!-- Search Section -->
+            <div class="mb-8">
+                <div class="relative max-w-2xl mx-auto">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="searchInput"
+                            placeholder="Search videos..."
+                            class="w-full pl-12 pr-10 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-sm"
+                        >
+                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <!-- Clear button (X) -->
+                        <button 
+                            id="clearSearchBtn"
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden"
+                        >
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories Filter -->
+            <div class="mb-8">
+                <div id="categoriesContainer" class="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
+                    <!-- Categories loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Search Results -->
+            <div id="searchResults" class="hidden mb-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Search Results</h2>
+                    <button id="clearSearch" class="text-gray-500 hover:text-gray-700 text-sm font-medium">
+                        Clear Search
+                    </button>
+                </div>
+                <div id="searchResultsGrid" class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                    <!-- Search results loaded here -->
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="text-center py-16">
+                <div class="loading-spinner mx-auto mb-4"></div>
+                <p class="text-gray-500 text-lg">Loading premium content...</p>
+            </div>
+
+            <!-- Content Area -->
+            <div id="contentArea" class="hidden">
+                <!-- Latest Videos -->
+                <section class="mb-12">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Latest Videos</h2>
+                    <div id="latestVideos" class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                        <!-- Latest videos loaded here -->
+                    </div>
+                </section>
+
+                <!-- Category Sections -->
+                <div id="categorySections">
+                    <!-- Category sections loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden text-center py-16">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-film text-gray-400 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">No Videos Available</h3>
+                <p class="text-gray-500">Check back later for new content.</p>
+            </div>
+
+            <!-- Load More Button -->
+            <div id="loadMoreBtn" class="text-center mt-8">
+                <button class="bg-purple-600 text-white px-8 py-3 rounded-xl hover:bg-purple-700 transition duration-200 font-medium">
+                    Load More Videos
+                </button>
+            </div>
+
+            <!-- Main Pagination Container -->
+            <div id="mainPaginationContainer">
+                <!-- Main pagination will be inserted here by JavaScript -->
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white border-t mt-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Main Footer Content -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                            <!-- Brand -->
+<div class="md:col-span-1">
+    <div class="flex items-center space-x-3 mb-4">
+        <img src="img/sabsrul.png" alt="SabSrul" class="h-8 w-auto">
+        <span class="text-lg font-bold text-gray-900">SabSrul</span>
+    </div>
+    <p class="text-gray-600 text-sm mb-4">
+        Premium adult entertainment platform for mature audiences.
+    </p>
+    <div class="flex space-x-3">
+        <a href="#" class="text-gray-400 hover:text-purple-600 transition-colors">
+            <i class="fab fa-twitter"></i>
+        </a>
+        <a href="#" class="text-gray-400 hover:text-purple-600 transition-colors">
+            <i class="fab fa-instagram"></i>
+        </a>
+        <a href="#" class="text-gray-400 hover:text-purple-600 transition-colors">
+            <i class="fab fa-telegram"></i>
+        </a>
     </div>
 </div>
 
-        <!-- Loading State -->
-        <div id="loadingState" class="text-center py-16">
-            <div class="loading-spinner mx-auto mb-4"></div>
-            <p class="text-gray-500 text-lg">Loading premium content...</p>
-        </div>
+                    <!-- Quick Links -->
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-4">Platform</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li><a href="index.html" class="text-gray-600 hover:text-purple-600 transition-colors">Home</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Latest Videos</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Popular Videos</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Categories</a></li>
+                        </ul>
+                    </div>
 
-        <!-- Content Area -->
-        <div id="contentArea" class="hidden">
-            <!-- Latest Videos -->
-                    <!-- Latest Videos -->
-<section class="mb-12">
-    <h2 class="text-2xl font-bold text-gray-900 mb-6">Latest Videos</h2>
-    <div id="latestVideos" class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-        <!-- Latest videos loaded here -->
-    </div>
-</section>
+                    <!-- Support -->
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-4">Support</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Help Center</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Contact Us</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Report Content</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">DMCA</a></li>
+                        </ul>
+                    </div>
 
-            <!-- Category Sections -->
-            <div id="categorySections">
-                <!-- Category sections loaded dynamically -->
-            </div>
-        </div>
+                    <!-- Legal -->
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-4">Legal</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Terms of Service</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Privacy Policy</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Content Policy</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Cookie Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
 
-        <!-- Empty State -->
-        <div id="emptyState" class="hidden text-center py-16">
-            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-film text-gray-400 text-xl"></i>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">No Videos Available</h3>
-            <p class="text-gray-500">Check back later for new content.</p>
-        </div>
-                <!-- Load More Button -->
-<div id="loadMoreBtn" class="text-center mt-8">
-    <button class="bg-purple-600 text-white px-8 py-3 rounded-xl hover:bg-purple-700 transition duration-200 font-medium">
-        Load More Videos
-    </button>
-</div>
-
-        <!-- Main Pagination Container -->
-        <div id="mainPaginationContainer">
-            <!-- Main pagination will be inserted here by JavaScript -->
-        </div>
-
-    </main>
-
-            <!-- Footer -->
-    <footer class="bg-white border-t mt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Main Footer Content -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-                <!-- Brand -->
-                <div class="md:col-span-1">
-                    <div class="flex items-center space-x-3 mb-4">
-                        <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-play text-white text-xs"></i>
+                <!-- Age Warning & Legal Notice -->
+                <div class="border-t border-gray-200 pt-6">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                        <!-- Age Restriction Warning -->
+                        <div class="flex items-center space-x-2 text-sm text-red-600 font-medium">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>STRICTLY 18+ ADULTS ONLY</span>
                         </div>
-                        <span class="text-lg font-bold text-gray-900">SabSrul</span>
-                    </div>
-                    <p class="text-gray-600 text-sm mb-4">
-                        Premium adult entertainment platform for mature audiences.
-                    </p>
-                    <div class="flex space-x-3">
-                        <a href="#" class="text-gray-400 hover:text-purple-600 transition-colors">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-purple-600 transition-colors">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-purple-600 transition-colors">
-                            <i class="fab fa-telegram"></i>
-                        </a>
+                        
+                        <!-- Legal Disclaimers -->
+                        <div class="text-xs text-gray-500 space-y-1">
+                            <p>⚠️ You must be 18 years or older to access this website. By entering, you confirm you are of legal age.</p>
+                            <p>🔞 This website contains explicit adult content intended for mature audiences only.</p>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Quick Links -->
-                <div>
-                    <h3 class="font-semibold text-gray-900 mb-4">Platform</h3>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="index.html" class="text-gray-600 hover:text-purple-600 transition-colors">Home</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Latest Videos</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Popular Videos</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Categories</a></li>
-                    </ul>
+                <!-- Copyright & Compliance -->
+                <div class="border-t border-gray-200 pt-6 mt-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                        <!-- Copyright -->
+                        <div class="text-sm text-gray-500">
+                            <p>&copy; 2024 SabSrul. All rights reserved.</p>
+                        </div>
+
+                        <!-- Compliance Badges -->
+                        <div class="flex items-center space-x-4 text-xs">
+                            <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded">18+</span>
+                            <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded">Adult Content</span>
+                            <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded">Legal</span>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Support -->
-                <div>
-                    <h3 class="font-semibold text-gray-900 mb-4">Support</h3>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Help Center</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Contact Us</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Report Content</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">DMCA</a></li>
-                    </ul>
-                </div>
-
-                <!-- Legal -->
-                <div>
-                    <h3 class="font-semibold text-gray-900 mb-4">Legal</h3>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Terms of Service</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Privacy Policy</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Content Policy</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Cookie Policy</a></li>
-                    </ul>
+                <!-- Additional Legal Text (Small) -->
+                <div class="mt-4 text-xs text-gray-400">
+                    <p>All models were 18 years of age or older at the time of depiction. All content is properly licensed and complies with applicable laws.</p>
                 </div>
             </div>
+        </footer>
+    </div>
 
-            <!-- Age Warning & Legal Notice -->
-            <div class="border-t border-gray-200 pt-6">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-                    <!-- Age Restriction Warning -->
-                    <div class="flex items-center space-x-2 text-sm text-red-600 font-medium">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <span>STRICTLY 18+ ADULTS ONLY</span>
-                    </div>
-                    
-                    <!-- Legal Disclaimers -->
-                    <div class="text-xs text-gray-500 space-y-1">
-                        <p>⚠️ You must be 18 years or older to access this website. By entering, you confirm you are of legal age.</p>
-                        <p>🔞 This website contains explicit adult content intended for mature audiences only.</p>
-                    </div>
-                </div>
-            </div>
+<script>
+    // AGE VERIFICATION SYSTEM - SHOWS ONLY ONCE PER BROWSER SESSION
+    function checkAgeVerification() {
+        const ageVerified = sessionStorage.getItem('ageVerified');
+        
+        console.log('Age verification check:', ageVerified); // Debug log
+        
+        if (ageVerified === 'true') {
+            // User already verified in this session - show website content immediately
+            showWebsiteContent();
+        } else {
+            // User not verified in this session - show modal
+            showAgeVerificationModal();
+        }
+    }
 
-            <!-- Copyright & Compliance -->
-            <div class="border-t border-gray-200 pt-6 mt-6">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-                    <!-- Copyright -->
-                    <div class="text-sm text-gray-500">
-                        <p>&copy; 2024 SabSrul. All rights reserved.</p>
-                    </div>
+    function confirmAge() {
+        console.log('Age confirmed'); // Debug log
+        // Set verification in sessionStorage (only lasts until browser is closed)
+        sessionStorage.setItem('ageVerified', 'true');
+        showWebsiteContent();
+        hideAgeVerificationModal();
+    }
 
-                    <!-- Compliance Badges -->
-                    <div class="flex items-center space-x-4 text-xs">
-                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded">18+</span>
-                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded">Adult Content</span>
-                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded">Legal</span>
-                    </div>
-                </div>
-            </div>
+    function rejectAge() {
+        // Redirect to safe page (Google)
+        window.location.href = 'https://www.google.com';
+    }
 
-            <!-- Additional Legal Text (Small) -->
-            <div class="mt-4 text-xs text-gray-400">
-                <p>All models were 18 years of age or older at the time of depiction. All content is properly licensed and complies with applicable laws.</p>
-            </div>
-        </div>
-    </footer>
+    function showWebsiteContent() {
+        const content = document.getElementById('websiteContent');
+        if (content) {
+            content.classList.remove('hidden');
+            console.log('Website content shown'); // Debug log
+        }
+        document.body.classList.remove('age-modal-open');
+    }
+
+    function showAgeVerificationModal() {
+        const modal = document.getElementById('ageVerificationModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            console.log('Age modal shown'); // Debug log
+        }
+        document.body.classList.add('age-modal-open');
+    }
+
+    function hideAgeVerificationModal() {
+        const modal = document.getElementById('ageVerificationModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            console.log('Age modal hidden'); // Debug log
+        }
+    }
+
+    // Check age verification on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Page loaded, checking age verification...'); // Debug log
+        checkAgeVerification();
+    });
+
+    // For testing: reset age verification
+    function resetAgeVerification() {
+        sessionStorage.removeItem('ageVerified');
+        console.log('Age verification reset'); // Debug log
+        location.reload();
+    }
+</script>
 
     <script src="js/main.js"></script>
 </body>

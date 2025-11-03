@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Add this with your other meta tags -->
-<meta name="rating" content="adult">
-<meta name="robots" content="noindex, nofollow">
+    <meta name="rating" content="adult">
+    <meta name="robots" content="noindex, nofollow">
     <title>Video - SabSrul</title>
-    
+    <link rel="icon" href="img/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -43,159 +43,6 @@
             height: 40px;
             animation: spin 1s linear infinite;
         }
-        /* Search clear button styles */
-#clearSearchBtn {
-    transition: all 0.2s ease-in-out;
-    padding: 0.25rem;
-    border-radius: 50%;
-    width: 1.5rem;
-    height: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#clearSearchBtn:hover {
-    background-color: #f3f4f6;
-}
-
-/* Mobile responsive for search clear button */
-@media (max-width: 639px) {
-    #clearSearchBtn {
-        width: 1.25rem;
-        height: 1.25rem;
-        right: 0.75rem;
-    }
-    
-    #searchInput {
-        padding-right: 2.5rem !important;
-    }
-}
-        /* YouTube-style Settings */
-.settings-btn {
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.settings-menu {
-    backdrop-filter: blur(20px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.settings-section:not(:last-child) {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.settings-option {
-    transition: all 0.2s ease;
-}
-
-.settings-option:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Hide settings button when video is not hovered */
-#videoPlayer:not(:hover) .settings-btn {
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-#videoPlayer:hover .settings-btn {
-    opacity: 1;
-}
-
-        /* VIDEO PAGE SPECIFIC STYLES */
-        /* Force 2 columns for related videos on ALL screens */
-        #relatedVideos {
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 1rem !important;
-        }
-
-        /* VIDEO PAGE SPECIFIC MOBILE CARD HEIGHTS - REDUCED */
-        @media (max-width: 768px) {
-            #relatedVideos .video-card img {
-                height: 130px !important;
-            }
-            
-            /* Increase video title font size on mobile */
-            #videoTitle {
-                font-size: 1.5rem !important;
-                line-height: 1.3 !important;
-            }
-        }
-
-        @media (max-width: 480px) {
-            #relatedVideos .video-card img {
-                height: 115px !important;
-            }
-            
-            #videoTitle {
-                font-size: 1.4rem !important;
-                line-height: 1.3 !important;
-            }
-        }
-
-        @media (max-width: 360px) {
-            #relatedVideos .video-card img {
-                height: 100px !important;
-            }
-            
-            #videoTitle {
-                font-size: 1.3rem !important;
-                line-height: 1.3 !important;
-            }
-        }
-
-        /* Desktop: Increase card height for laptop */
-        @media (min-width: 1024px) {
-            #relatedVideos .video-card img {
-                height: 180px !important; /* Increased height for laptop */
-            }
-            
-            /* PROPER VIDEO PLAYER SIZING - REDUCED SIZE */
-            .video-player-container {
-                max-width: 700px !important; /* Reduced from 800px */
-                margin: 0 auto;
-            }
-            
-            #videoPlayer {
-                max-height: 500px !important; /* Limit maximum height */
-                width: 100% !important;
-                object-fit: contain; /* Maintain aspect ratio */
-            }
-        }
-
-        /* Large desktop: Even larger cards */
-        @media (min-width: 1280px) {
-            #relatedVideos .video-card img {
-                height: 200px !important; /* Even larger for big screens */
-            }
-            
-            .video-player-container {
-                max-width: 750px !important; /* Slightly larger for big screens */
-            }
-        }
-
-        /* Mobile video player sizing */
-        @media (max-width: 1023px) {
-            .video-player-container {
-                max-width: 100% !important;
-            }
-            
-            #videoPlayer {
-                max-height: 60vh !important; /* Limit height on mobile */
-                width: 100% !important;
-                object-fit: contain;
-            }
-        }
-
-        /* Extra small screens */
-        @media (max-width: 480px) {
-            #videoPlayer {
-                max-height: 50vh !important; /* Smaller on very small screens */
-            }
-        }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -203,337 +50,446 @@
     </style>
 </head>
 <body class="bg-gray-50 font-inter">
-    <!-- Clean Navigation -->
-    <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <!-- Logo & Back -->
-                <div class="flex items-center space-x-4">
-                    <a href="index.html" class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors p-2 rounded-lg hover:bg-gray-100">
-                        <i class="fas fa-arrow-left"></i>
-                        <span class="hidden sm:inline">Back</span>
-                    </a>
-                    
-                    <a href="index.html" class="flex items-center space-x-3">
-                        <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-play text-white text-xs"></i>
-                        </div>
-                        <span class="text-lg font-bold text-gray-900">SabSrul</span>
-                    </a>
+    <!-- AGE VERIFICATION MODAL - FIRST THING USERS SEE -->
+    <!-- AGE VERIFICATION MODAL - FIRST THING USERS SEE -->
+<div id="ageVerificationModal" class="fixed inset-0 bg-black flex items-center justify-center z-[100] hidden">
+        <div class="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl">
+            <div class="text-center">
+                <!-- Warning Icon -->
+                <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-red-100 mb-6">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-3xl"></i>
                 </div>
-
-                        <!-- Desktop Categories -->
-<div class="hidden lg:flex items-center space-x-6">
-    <div class="relative group" id="categoriesDropdown">
-        <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100">
-            <span>Categories</span>
-            <i class="fas fa-chevron-down text-xs mt-1"></i>
-        </button>
-        <div id="desktopCategoriesMenu" class="absolute hidden right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-3 z-50">
-            <div id="desktopCategories">
-                <!-- Categories loaded dynamically -->
+                
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Age Verification Required</h2>
+                
+                <p class="text-gray-600 mb-2 text-lg">
+                    You must be <span class="font-bold text-red-600">18 years or older</span> to enter this website.
+                </p>
+                
+                <p class="text-gray-500 mb-6 text-sm">
+                    This site contains explicit adult content intended for mature audiences only.
+                </p>
+                
+                <div class="flex flex-col space-y-4">
+                    <button 
+                        onclick="confirmAge()"
+                        class="bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-lg text-lg transition duration-200 transform hover:scale-105"
+                    >
+                        ✅ I AM 18+ - ENTER SITE
+                    </button>
+                    
+                    <button 
+                        onclick="rejectAge()"
+                        class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-6 rounded-lg transition duration-200"
+                    >
+                        🚫 I'M UNDER 18 - EXIT
+                    </button>
+                </div>
+                
+                <p class="text-xs text-gray-400 mt-4">
+                    By entering, you confirm you are of legal age and agree to our 
+                    <a href="#" class="text-red-600 hover:underline">Terms of Service</a> and 
+                    <a href="#" class="text-red-600 hover:underline">Privacy Policy</a>.
+                </p>
             </div>
+        </div>
+    </div>
+
+    <!-- WEBSITE CONTENT - HIDDEN UNTIL AGE VERIFICATION -->
+    <div id="websiteContent" class="hidden">
+        <!-- Clean Navigation -->
+        <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo & Back -->
+                    <div class="flex items-center space-x-4">
+                        <a href="index.html" class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors p-2 rounded-lg hover:bg-gray-100">
+                            <i class="fas fa-arrow-left"></i>
+                            <span class="hidden sm:inline">Back</span>
+                        </a>
+                        
+                        <a href="index.html" class="flex items-center space-x-3">
+                            <img src="img/sabsrul.png" alt="SabSrul" class="h-8 w-auto">
+                            <span class="text-lg font-bold text-gray-900">SabSrul</span>
+                        </a>
+                    </div>
+
+                    <!-- Desktop Categories -->
+                    <div class="hidden lg:flex items-center space-x-6">
+                        <div class="relative group" id="categoriesDropdown">
+                            <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100">
+                                <span>Categories</span>
+                                <i class="fas fa-chevron-down text-xs mt-1"></i>
+                            </button>
+                            <div id="desktopCategoriesMenu" class="absolute hidden right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-3 z-50">
+                                <div id="desktopCategories">
+                                    <!-- Categories loaded dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Menu -->
+                    <button id="mobileMenuButton" class="lg:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                
+
+                   <!-- Mobile Menu -->
+<div id="mobileMenu" class="lg:hidden hidden absolute top-16 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
+    <div class="px-4 py-6 space-y-6 max-h-[70vh] overflow-y-auto">
+        <!-- Categories Section -->
+        <div>
+            <h3 class="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide px-2">Categories</h3>
+            <div id="mobileCategories" class="space-y-2">
+                <!-- All Categories will be added dynamically by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Home Link -->
+        <div class="border-t border-gray-200 pt-4">
+            <a href="index.html" class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg">
+                <i class="fas fa-home text-purple-500 mr-3 w-4"></i>
+                <span>Home</span>
+            </a>
         </div>
     </div>
 </div>
-                <!-- Mobile Menu -->
-                <button id="mobileMenuButton" class="lg:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors">
-                    <i class="fas fa-bars"></i>
-                </button>
-            
-
-                    <!-- Mobile Menu -->
-            <div id="mobileMenu" class="lg:hidden hidden border-t border-gray-200 py-4">
-                <div class="space-y-2">
-                    <!-- Categories Section in Mobile -->
-                    <div class="px-3 py-2">
-                        <h3 class="text-sm font-semibold text-gray-900 mb-2 uppercase tracking-wide">Categories</h3>
-                        <div id="mobileCategories" class="space-y-1">
-                            <!-- Categories loaded dynamically -->
-                        </div>
-                    </div>
-                    
-                    <!-- Optional: Add other mobile menu items -->
-                    <div class="border-t border-gray-200 pt-2 mt-2">
-                        <a href="index.html" class="block px-3 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg">
-                            <i class="fas fa-home mr-3 w-4"></i>
-                            Home
-                        </a>
-                    </div>
                 </div>
             </div>
-        </div>
-    </nav>
+        </nav>
 
         <!-- Search Section -->
-    <div class="bg-white border-b">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div class="relative max-w-2xl mx-auto">
-                <div class="relative">
-                    <input 
-                        type="text" 
-                        id="searchInput"
-                        placeholder="Search videos..."
-                        class="w-full pl-12 pr-10 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-sm"
-                    >
-                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <!-- Clear button (X) -->
-                    <button 
-                        id="clearSearchBtn"
-                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden"
-                    >
-                        <i class="fas fa-times"></i>
-                    </button>
+        <div class="bg-white border-b">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div class="relative max-w-2xl mx-auto">
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="searchInput"
+                            placeholder="Search videos..."
+                            class="w-full pl-12 pr-10 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white shadow-sm"
+                        >
+                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <!-- Clear button (X) -->
+                        <button 
+                            id="clearSearchBtn"
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden"
+                        >
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <!-- Original Layout: Video on left, empty space on right for future content -->
-        <div class="flex flex-col lg:flex-row gap-8">
-            <!-- Video Player Section - Left Side -->
-            <div class="lg:w-2/3">
-                <!-- Loading -->
-                <div id="videoLoading" class="text-center py-16">
-                    <div class="loading-spinner mx-auto mb-4"></div>
-                    <p class="text-gray-500 text-lg">Loading video...</p>
-                </div>
-
-                <!-- Video Content -->
-                <div id="videoContent" class="hidden">
-                    <!-- Video Player Container with proper sizing -->
-                    <div class="video-player-container bg-black rounded-xl overflow-hidden mb-6 shadow-lg mx-auto">
-                        <video 
-                            id="videoPlayer"
-                            class="w-full h-auto"
-                            controls
-                            poster=""
-                            preload="metadata"
-                        >
-                            Your browser does not support the video tag.
-                        </video>
-                        
-                                
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <!-- Original Layout: Video on left, empty space on right for future content -->
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Video Player Section - Left Side -->
+                <div class="lg:w-2/3">
+                    <!-- Loading -->
+                    <div id="videoLoading" class="text-center py-16">
+                        <div class="loading-spinner mx-auto mb-4"></div>
+                        <p class="text-gray-500 text-lg">Loading video...</p>
                     </div>
 
-                    <!-- Video Info - NO WHITE CONTAINER -->
-                    <div class="mb-8">
-                        <!-- Title -->
-                        <h1 id="videoTitle" class="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
-                            Video Title
-                        </h1>
+<!-- Video Content -->
+<div id="videoContent" class="hidden">
+    <!-- Video Player Container with proper sizing -->
+    <div class="video-player-container bg-black rounded-xl overflow-hidden mb-6 shadow-lg mx-auto">
+        <video 
+            id="videoPlayer"
+            class="w-full h-auto"
+            controls
+            poster=""
+            preload="metadata"
+        >
+            Your browser does not support the video tag.
+        </video>
+    </div>
 
-                        <!-- Meta Info -->
-                        <div class="flex flex-wrap items-center gap-4 mb-4 text-sm text-gray-600">
-                            <div class="flex items-center space-x-2">
-                                <i class="fas fa-eye"></i>
-                                <span id="videoViews">0 views</span>
-                            </div>
-                            <div class="w-1 h-1 bg-gray-300 rounded-full"></div>
-                            <div class="flex items-center space-x-2">
-                                <i class="fas fa-calendar"></i>
-                                <span id="videoDate">Recently</span>
-                            </div>
-                            <div class="w-1 h-1 bg-gray-300 rounded-full"></div>
-                            <span id="videoCategory" class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-medium cursor-pointer hover:bg-purple-200 transition-colors">
-                                Category
-                            </span>
-                        </div>
+    <!-- Video Info - NO WHITE CONTAINER -->
+    <div class="mb-8 px-4 lg:px-0">
+        <!-- Title -->
+        <h1 id="videoTitle" class="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
+            Video Title
+        </h1>
 
-                        <!-- Actions -->
-                        <div class="flex items-center space-x-3 mb-4">
-                            <button id="likeBtn" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
-                                <i class="far fa-heart"></i>
-                                <span id="likeCount" class="font-medium">0</span>
-                            </button>
-                            <button id="shareBtn" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
-                                <i class="fas fa-share"></i>
-                                <span class="font-medium">Share</span>
-                            </button>
-                        </div>
+        <!-- Meta Info -->
+        <div class="flex flex-wrap items-center gap-4 mb-4 text-sm text-gray-600">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-eye"></i>
+                <span id="videoViews">0 views</span>
+            </div>
+            <div class="w-1 h-1 bg-gray-300 rounded-full"></div>
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-calendar"></i>
+                <span id="videoDate">Recently</span>
+            </div>
+            <div class="w-1 h-1 bg-gray-300 rounded-full"></div>
+            <span id="videoCategory" class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-medium cursor-pointer hover:bg-purple-200 transition-colors">
+                Category
+            </span>
+        </div>
 
-                        <!-- Description -->
-                        <div class="border-t border-gray-200 pt-4">
-                            <p id="videoDescription" class="text-gray-700 leading-relaxed">
-                                Video description will appear here.
-                            </p>
-                        </div>
+        <!-- Actions -->
+        <div class="flex items-center space-x-3 mb-4">
+            <button id="likeBtn" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                <i class="far fa-heart"></i>
+                <span id="likeCount" class="font-medium">0</span>
+            </button>
+            <button id="shareBtn" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
+                <i class="fas fa-share"></i>
+                <span class="font-medium">Share</span>
+            </button>
+        </div>
+
+      
 
                         <!-- Tags -->
                         <div id="videoTags" class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200 hidden">
                             <!-- Tags loaded here -->
                         </div>
-                    </div>
-                </div>
+                            <!-- Horizontal Line - BOLD -->
+                    <hr class="my-6 border-gray-300 border-t-2">
+            </div>
+        </div>
 
-                <!-- Error State -->
-                <div id="videoError" class="hidden text-center py-16">
-                    <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-exclamation-triangle text-gray-400 text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Video Unavailable</h3>
-                    <p class="text-gray-500 mb-4">This video is currently unavailable.</p>
-                    <a href="index.html" class="inline-flex items-center space-x-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium">
-                        <i class="fas fa-arrow-left"></i>
-                        <span>Back to Videos</span>
-                    </a>
-                </div>
-
-                <!-- Related Videos Section - INSIDE THE LEFT 2/3 COLUMN (NOT full width) -->
-                <section class="mt-12 mb-12">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Related Videos</h2>
-                    
-                    <!-- Loading -->
-                    <div id="relatedLoading" class="text-center py-16">
-                        <div class="loading-spinner mx-auto mb-4"></div>
-                        <p class="text-gray-500 text-lg">Loading related videos...</p>
-                    </div>
-
-                    <!-- Related Videos Grid - 2 COLUMNS ON ALL SCREENS -->
-                    <div id="relatedVideos" class="grid grid-cols-2 gap-4">
-                        <!-- Related videos loaded here -->
-                    </div>
-
-                    <!-- Load More Button for Related Videos -->
-                    <div id="relatedLoadMore" class="text-center mt-8">
-                        <button onclick="loadMoreRelatedVideos()" 
-                                class="bg-purple-600 text-white px-8 py-3 rounded-xl hover:bg-purple-700 transition duration-200 font-medium hidden">
-                            Load More Videos
-                        </button>
-                    </div>
-
-                    <!-- Empty State -->
-                    <div id="noRelatedVideos" class="hidden text-center py-16">
+                    <!-- Error State -->
+                    <div id="videoError" class="hidden text-center py-16">
                         <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-film text-gray-400 text-xl"></i>
+                            <i class="fas fa-exclamation-triangle text-gray-400 text-xl"></i>
                         </div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">No Related Videos</h3>
-                        <p class="text-gray-500">No related videos found for this video.</p>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Video Unavailable</h3>
+                        <p class="text-gray-500 mb-4">This video is currently unavailable.</p>
+                        <a href="index.html" class="inline-flex items-center space-x-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Back to Videos</span>
+                        </a>
                     </div>
-                </section>
-            </div>
 
-            <!-- Empty Space for Future Content - Right Side -->
-            <div class="lg:w-1/3">
-                <div class="sticky top-24">
-                    <!-- This space is reserved for future content -->
-                    <!-- You can add ads, recommendations, comments, etc. here later -->
-                    <div class="bg-gray-100 rounded-xl p-6 text-center text-gray-500">
-                        <i class="fas fa-plus-circle text-2xl mb-2"></i>
-                        <p>Space reserved for future content</p>
-                    </div>
-                </div>
-            </div>
+                            <!-- Related Videos Section - STRETCH TO EDGES ON MOBILE -->
+<section class="mt-12 mb-12 -mx-4 px-4 lg:mx-0 lg:px-0">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">Related Videos</h2>
+    
+    <!-- Loading -->
+    <div id="relatedLoading" class="text-center py-16">
+        <div class="loading-spinner mx-auto mb-4"></div>
+        <p class="text-gray-500 text-lg">Loading related videos...</p>
+    </div>
+
+    <!-- Related Videos Grid - STRETCH TO EDGES -->
+    <div id="relatedVideos" class="grid grid-cols-2 gap-3">
+        <!-- Related videos loaded here -->
+    </div>
+
+    <!-- Load More Button for Related Videos -->
+    <div id="relatedLoadMore" class="text-center mt-8 px-4 lg:px-0">
+        <button onclick="loadMoreRelatedVideos()" 
+                class="bg-purple-600 text-white px-8 py-3 rounded-xl hover:bg-purple-700 transition duration-200 font-medium hidden">
+            Load More Videos
+        </button>
+    </div>
+
+    <!-- Empty State -->
+    <div id="noRelatedVideos" class="hidden text-center py-16">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-film text-gray-400 text-xl"></i>
         </div>
-    </main>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">No Related Videos</h3>
+        <p class="text-gray-500">No related videos found for this video.</p>
+    </div>
+</section>
+                </div>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t mt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Main Footer Content -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-                <!-- Brand -->
-                <div class="md:col-span-1">
-                    <div class="flex items-center space-x-3 mb-4">
-                        <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-play text-white text-xs"></i>
+                <!-- Empty Space for Future Content - Right Side -->
+                <div class="lg:w-1/3">
+                    <div class="sticky top-24">
+                        <!-- This space is reserved for future content -->
+                        <!-- You can add ads, recommendations, comments, etc. here later -->
+                        <div class="bg-gray-100 rounded-xl p-6 text-center text-gray-500">
+                            <i class="fas fa-plus-circle text-2xl mb-2"></i>
+                            <p>Space reserved for future content</p>
                         </div>
-                        <span class="text-lg font-bold text-gray-900">SabSrul</span>
-                    </div>
-                    <p class="text-gray-600 text-sm mb-4">
-                        Premium adult entertainment platform for mature audiences.
-                    </p>
-                    <div class="flex space-x-3">
-                        <a href="#" class="text-gray-400 hover:text-purple-600 transition-colors">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-purple-600 transition-colors">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-purple-600 transition-colors">
-                            <i class="fab fa-telegram"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Quick Links -->
-                <div>
-                    <h3 class="font-semibold text-gray-900 mb-4">Platform</h3>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="index.html" class="text-gray-600 hover:text-purple-600 transition-colors">Home</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Latest Videos</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Popular Videos</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Categories</a></li>
-                    </ul>
-                </div>
-
-                <!-- Support -->
-                <div>
-                    <h3 class="font-semibold text-gray-900 mb-4">Support</h3>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Help Center</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Contact Us</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Report Content</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">DMCA</a></li>
-                    </ul>
-                </div>
-
-                <!-- Legal -->
-                <div>
-                    <h3 class="font-semibold text-gray-900 mb-4">Legal</h3>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Terms of Service</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Privacy Policy</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Content Policy</a></li>
-                        <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Cookie Policy</a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Age Warning & Legal Notice -->
-            <div class="border-t border-gray-200 pt-6">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-                    <!-- Age Restriction Warning -->
-                    <div class="flex items-center space-x-2 text-sm text-red-600 font-medium">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <span>STRICTLY 18+ ADULTS ONLY</span>
-                    </div>
-                    
-                    <!-- Legal Disclaimers -->
-                    <div class="text-xs text-gray-500 space-y-1">
-                        <p>⚠️ You must be 18 years or older to access this website. By entering, you confirm you are of legal age.</p>
-                        <p>🔞 This website contains explicit adult content intended for mature audiences only.</p>
                     </div>
                 </div>
             </div>
+        </main>
 
-            <!-- Copyright & Compliance -->
-            <div class="border-t border-gray-200 pt-6 mt-6">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-                    <!-- Copyright -->
-                    <div class="text-sm text-gray-500">
-                        <p>&copy; 2024 SabSrul. All rights reserved.</p>
+        <!-- Footer -->
+        <footer class="bg-white border-t mt-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Main Footer Content -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                    <!-- Brand -->
+                    <div class="md:col-span-1">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <img src="img/sabsrul.png" alt="SabSrul" class="h-8 w-auto">
+                            <span class="text-lg font-bold text-gray-900">SabSrul</span>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-4">
+                            Premium adult entertainment platform for mature audiences.
+                        </p>
+                        <div class="flex space-x-3">
+                            <a href="#" class="text-gray-400 hover:text-purple-600 transition-colors">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a href="#" class="text-gray-400 hover:text-purple-600 transition-colors">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="#" class="text-gray-400 hover:text-purple-600 transition-colors">
+                                <i class="fab fa-telegram"></i>
+                            </a>
+                        </div>
                     </div>
 
-                    <!-- Compliance Badges -->
-                    <div class="flex items-center space-x-4 text-xs">
-                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded">18+</span>
-                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded">Adult Content</span>
-                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded">Legal</span>
+                    <!-- Quick Links -->
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-4">Platform</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li><a href="index.html" class="text-gray-600 hover:text-purple-600 transition-colors">Home</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Latest Videos</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Popular Videos</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Categories</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Support -->
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-4">Support</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Help Center</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Contact Us</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Report Content</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">DMCA</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Legal -->
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-4">Legal</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Terms of Service</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Privacy Policy</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Content Policy</a></li>
+                            <li><a href="#" class="text-gray-600 hover:text-purple-600 transition-colors">Cookie Policy</a></li>
+                        </ul>
                     </div>
                 </div>
-            </div>
 
-            <!-- Additional Legal Text (Small) -->
-            <div class="mt-4 text-xs text-gray-400">
-                <p>All models were 18 years of age or older at the time of depiction. All content is properly licensed and complies with applicable laws.</p>
+                <!-- Age Warning & Legal Notice -->
+                <div class="border-t border-gray-200 pt-6">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                        <!-- Age Restriction Warning -->
+                        <div class="flex items-center space-x-2 text-sm text-red-600 font-medium">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>STRICTLY 18+ ADULTS ONLY</span>
+                        </div>
+                        
+                        <!-- Legal Disclaimers -->
+                        <div class="text-xs text-gray-500 space-y-1">
+                            <p>⚠️ You must be 18 years or older to access this website. By entering, you confirm you are of legal age.</p>
+                            <p>🔞 This website contains explicit adult content intended for mature audiences only.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Copyright & Compliance -->
+                <div class="border-t border-gray-200 pt-6 mt-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                        <!-- Copyright -->
+                        <div class="text-sm text-gray-500">
+                            <p>&copy; 2024 SabSrul. All rights reserved.</p>
+                        </div>
+
+                        <!-- Compliance Badges -->
+                        <div class="flex items-center space-x-4 text-xs">
+                            <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded">18+</span>
+                            <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded">Adult Content</span>
+                            <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded">Legal</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Legal Text (Small) -->
+                <div class="mt-4 text-xs text-gray-400">
+                    <p>All models were 18 years of age or older at the time of depiction. All content is properly licensed and complies with applicable laws.</p>
+                </div>
             </div>
-        </div>
-    </footer>
+        </footer>
+    </div>
+
+<script>
+    // AGE VERIFICATION SYSTEM - SHOWS ONLY ONCE PER BROWSER SESSION
+    function checkAgeVerification() {
+        const ageVerified = sessionStorage.getItem('ageVerified');
+        
+        console.log('Age verification check:', ageVerified); // Debug log
+        
+        if (ageVerified === 'true') {
+            // User already verified in this session - show website content immediately
+            showWebsiteContent();
+        } else {
+            // User not verified in this session - show modal
+            showAgeVerificationModal();
+        }
+    }
+
+    function confirmAge() {
+        console.log('Age confirmed'); // Debug log
+        // Set verification in sessionStorage (only lasts until browser is closed)
+        sessionStorage.setItem('ageVerified', 'true');
+        showWebsiteContent();
+        hideAgeVerificationModal();
+    }
+
+    function rejectAge() {
+        // Redirect to safe page (Google)
+        window.location.href = 'https://www.google.com';
+    }
+
+    function showWebsiteContent() {
+        const content = document.getElementById('websiteContent');
+        if (content) {
+            content.classList.remove('hidden');
+            console.log('Website content shown'); // Debug log
+        }
+        document.body.classList.remove('age-modal-open');
+    }
+
+    function showAgeVerificationModal() {
+        const modal = document.getElementById('ageVerificationModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            console.log('Age modal shown'); // Debug log
+        }
+        document.body.classList.add('age-modal-open');
+    }
+
+    function hideAgeVerificationModal() {
+        const modal = document.getElementById('ageVerificationModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            console.log('Age modal hidden'); // Debug log
+        }
+    }
+
+    // Check age verification on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Page loaded, checking age verification...'); // Debug log
+        checkAgeVerification();
+    });
+
+    // For testing: reset age verification
+    function resetAgeVerification() {
+        sessionStorage.removeItem('ageVerified');
+        console.log('Age verification reset'); // Debug log
+        location.reload();
+    }
+</script>
 
     <script src="js/video.js"></script>
 </body>
 </html>
-]

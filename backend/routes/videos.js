@@ -50,7 +50,10 @@ router.post(
     ]), 
     videoController.uploadVideo
 );
-
+// @route   GET /api/videos/admin/all
+// @desc    Get all videos for admin (including drafts)
+// @access  Private (Admin)
+router.get('/admin/all', auth, videoController.getAdminVideos);
 // @route   PUT /api/videos/:id
 // @desc    Update video metadata
 // @access  Private (Admin)

@@ -419,7 +419,7 @@ function showSearchResults(videos, query) {
     }
     
     searchResultsGrid.innerHTML = videos.map(video => `
-        <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video._id}">
+        <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video.shortId || video._id}">
             <div class="relative">
                 <img src="${video.thumbnail}" 
                      alt="${video.title}" 
@@ -559,7 +559,7 @@ function displayLatestVideos(videos, currentCategory = 'all') {
     console.log('📹 Displaying LATEST 6 videos:', latestSixVideos.length);
     
     latestVideos.innerHTML = latestSixVideos.map(video => `
-        <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video._id}">
+        <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video.shortId || video._id}">
             <div class="relative">
                 <img src="${video.thumbnail}" 
                      alt="${video.title}" 
@@ -586,7 +586,7 @@ function displayTrendingVideos(videos) {
     if (!trendingVideos) return;
     
     trendingVideos.innerHTML = videos.map(video => `
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition duration-300 cursor-pointer video-card" data-video-id="${video._id}">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition duration-300 cursor-pointer video-card" data-video-id="${video.shortId || video._id}">
             <div class="relative">
                 <img src="${video.thumbnail}" 
                      alt="${video.title}" 
@@ -676,7 +676,7 @@ async function displayCategorySections(videos, currentFilterCategory = 'all') {
             
             <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
                 ${videos.map(video => `
-                    <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video._id}">
+                    <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video.shortId || video._id}">
                         <div class="relative">
                             <img src="${video.thumbnail}" 
                                  alt="${video.title}" 
@@ -735,7 +735,7 @@ async function displayCategorySections(videos, currentFilterCategory = 'all') {
             
             <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
                 ${categoryVideos.map(video => `
-                    <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video._id}">
+                    <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video.shortId || video._id}">
                         <div class="relative">
                             <img src="${video.thumbnail}" 
                                  alt="${video.title}" 
@@ -865,7 +865,7 @@ function appendVideosToCategories(newVideos, category) {
         if (targetSection) {
             const videoGrid = targetSection.querySelector('.grid');
             const newVideosHTML = newCategories[categoryName].map(video => `
-                <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video._id}">
+                <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video.shortId || video._id}">
                     <div class="relative">
                         <img src="${video.thumbnail}" 
                              alt="${video.title}" 
@@ -964,11 +964,11 @@ function generatePageNumbers(currentPage, totalPages, category) {
 
 
 
-// Navigate to video page
+// Navigate to video page - KEEP ORIGINAL FORMAT
 function navigateToVideo(videoId) {
-    window.location.href = `video.html?id=${videoId}`;
+    // Use original format: video.html?id=VIDEO_ID
+    window.location.href = `/video.html?id=${videoId}`;
 }
-
 // Utility functions
     function formatDuration(seconds) {
     // Handle undefined, null, or 0 duration
@@ -982,14 +982,14 @@ function navigateToVideo(videoId) {
 }
 
 function formatViews(views) {
-    if (!views && views !== 0) return '0 views';
+    if (!views && views !== 0) return '0';
     
     if (views >= 1000000) {
-        return (views / 1000000).toFixed(1) + 'M views';
+        return (views / 1000000).toFixed(1) + 'M';
     } else if (views >= 1000) {
-        return (views / 1000).toFixed(1) + 'K views';
+        return (views / 1000).toFixed(1) + 'K';
     }
-    return views + ' views';
+    return views.toString(); // Just return the number, no "views"
 }
 
 function formatLikes(likes) {
@@ -1062,6 +1062,7 @@ document.addEventListener('click', function(e) {
         navigateToVideo(videoId);
     }
 });
+
 // Load videos by tag
 async function loadVideosByTag(tag) {
     console.log(`🏷️ Loading videos for tag: ${tag}`);

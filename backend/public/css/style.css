@@ -4,6 +4,130 @@
     box-sizing: border-box;
 }
 
+/* ===== VIDEO CARD THUMBNAIL HEIGHTS - UNIVERSAL ===== */
+
+/* Mobile: 2 cards per row with REDUCED thumbnail height */
+@media (max-width: 639px) {
+    /* Index.html mobile - REDUCED by 8-12% */
+    .video-card img,
+    [data-video-id] img,
+    #latestVideos img,
+    #searchResultsGrid img,
+    #categorySections img,
+    .category-section img {
+        height: 7.5rem !important; /* Reduced from 9rem to 7.5rem (16.6% reduction) */
+        width: 100% !important;
+        object-fit: cover !important;
+    }
+    
+    /* Video.html mobile - REDUCED by 10-15% */
+    #relatedVideos .video-card img {
+        height: 7rem !important; /* Reduced from 9rem to 7rem (22% reduction) */
+        width: 100% !important;
+        object-fit: cover !important;
+    }
+}
+
+/* Tablet adjustments */
+@media (min-width: 640px) and (max-width: 1023px) {
+    .video-card img,
+    [data-video-id] img,
+    #latestVideos img,
+    #searchResultsGrid img,
+    #categorySections img,
+    .category-section img,
+    #relatedVideos .video-card img {
+        height: 11rem !important; /* Keep as is for tablet */
+        width: 100% !important;
+        object-fit: cover !important;
+    }
+}
+
+/* ===== DESKTOP/LAPTOP STYLING ===== */
+@media (min-width: 1024px) {
+    /* Index.html desktop - REDUCED by 20-30% */
+    .video-card img,
+    [data-video-id] img,
+    #latestVideos img,
+    #searchResultsGrid img,
+    #categorySections img,
+    .category-section img {
+        height: 9rem !important; /* Reduced from 13rem to 9rem (30.7% reduction) */
+        width: 100% !important;
+        object-fit: cover !important;
+    }
+    
+    /* Video.html desktop - KEEP AS IS (no reduction) */
+    #relatedVideos .video-card img {
+        height: 13rem !important; /* Keep original height */
+        width: 100% !important;
+        object-fit: cover !important;
+    }
+}
+
+/* Large desktop */
+@media (min-width: 1280px) {
+    /* Index.html large desktop - REDUCED by 20-30% */
+    .video-card img,
+    [data-video-id] img,
+    #latestVideos img,
+    #searchResultsGrid img,
+    #categorySections img,
+    .category-section img {
+        height: 10rem !important; /* Reduced from 14rem to 10rem (28.5% reduction) */
+        width: 100% !important;
+        object-fit: cover !important;
+    }
+    
+    /* Video.html large desktop - KEEP AS IS (no reduction) */
+    #relatedVideos .video-card img {
+        height: 14rem !important; /* Keep original height */
+        width: 100% !important;
+        object-fit: cover !important;
+    }
+}
+
+/* ===== VIDEO CARD TEXT STYLING - UNIVERSAL ===== */
+.video-card h3,
+[data-video-id] h3,
+#latestVideos h3,
+#searchResultsGrid h3,
+#categorySections h3,
+#relatedVideos .video-card h3 {
+    font-size: 0.8rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 0.25rem !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    font-weight: 600 !important;
+    color: #1f2937 !important;
+}
+
+.video-card p.text-gray-600,
+[data-video-id] p.text-gray-600,
+#latestVideos p.text-gray-600,
+#searchResultsGrid p.text-gray-600,
+#categorySections p.text-gray-600,
+#relatedVideos .video-card p.text-gray-600 {
+    font-size: 0.7rem !important;
+    margin-bottom: 0.25rem !important;
+    color: #6b7280 !important;
+    text-transform: capitalize !important;
+}
+
+.video-card .flex.justify-between,
+[data-video-id] .flex.justify-between,
+#latestVideos .flex.justify-between,
+#searchResultsGrid .flex.justify-between,
+#categorySections .flex.justify-between,
+#relatedVideos .video-card .flex.justify-between {
+    font-size: 0.65rem !important;
+    color: #9ca3af !important;
+    margin-top: 0.25rem !important;
+}
+
 /* ===== MOBILE FIRST STYLES ===== */
 
 /* Mobile: 2 cards per row - FORCE THIS */
@@ -30,41 +154,14 @@
         margin-bottom: 1rem !important;
     }
     
-        /* Category filter buttons mobile - LARGER */
-#categoriesContainer button {
-    font-size: 0.85rem !important;
-    padding: 0.6rem 0.9rem !important;
-    margin-right: 0.4rem !important;
-    margin-bottom: 0.25rem !important;
-}
-    /* Search clear button styles */
-#clearSearchBtn {
-    transition: all 0.2s ease-in-out;
-    padding: 0.25rem;
-    border-radius: 50%;
-    width: 1.5rem;
-    height: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#clearSearchBtn:hover {
-    background-color: #f3f4f6;
-}
-
-/* Mobile responsive for search clear button */
-@media (max-width: 639px) {
-    #clearSearchBtn {
-        width: 1.25rem;
-        height: 1.25rem;
-        right: 0.75rem;
+    /* Category filter buttons mobile - LARGER */
+    #categoriesContainer button {
+        font-size: 0.85rem !important;
+        padding: 0.6rem 0.9rem !important;
+        margin-right: 0.4rem !important;
+        margin-bottom: 0.25rem !important;
     }
     
-    #searchInput {
-        padding-right: 2.5rem !important;
-    }
-}
     /* Main content padding mobile */
     main.max-w-7xl.mx-auto {
         padding-left: 0.5rem !important;
@@ -99,35 +196,6 @@
         box-shadow: none !important;
     }
     
-    /* Better image sizing for mobile */
-    .video-card img {
-        height: 100px !important;
-        object-fit: cover !important;
-        width: 100% !important;
-        border-radius: 8px;
-    }
-    
-    /* Better text sizes for mobile */
-    .video-card h3 {
-        font-size: 12px !important;
-        line-height: 1.3 !important;
-        margin-bottom: 4px !important;
-        font-weight: 600 !important;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-    
-    .video-card p {
-        font-size: 10px !important;
-        margin-bottom: 4px !important;
-    }
-    
-    .video-card span {
-        font-size: 10px !important;
-    }
-    
     /* Better padding for mobile cards */
     .video-card > div {
         padding: 6px 2px !important;
@@ -156,18 +224,10 @@
 
 /* Very small screens: 2 cards but smaller */
 @media (max-width: 480px) {
-    .video-card img {
-        height: 90px !important;
-    }
-    
-    .video-card h3 {
-        font-size: 11px !important;
-    }
-    
     #categoriesContainer button {
-    padding: 0.5rem 0.75rem !important;
-    font-size: 0.8rem !important;
-}
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.8rem !important;
+    }
     
     #searchInput {
         font-size: 0.85rem !important;
@@ -176,14 +236,6 @@
 
 /* Extra small screens */
 @media (max-width: 360px) {
-    .video-card img {
-        height: 80px !important;
-    }
-    
-    .video-card h3 {
-        font-size: 10px !important;
-    }
-    
     #latestVideos,
     #searchResultsGrid,
     #categorySections .grid {
@@ -339,3 +391,196 @@ img {
 html {
     scroll-behavior: smooth;
 }
+
+/* ===== VIDEO PAGE SPECIFIC STYLES ===== */
+
+/* Force 2 columns for related videos on ALL screens */
+#relatedVideos {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
+}
+
+/* Video player container */
+.video-player-container {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* Mobile video player sizing */
+@media (max-width: 1023px) {
+    .video-player-container {
+        max-width: 100% !important;
+    }
+    
+    #videoPlayer {
+        max-height: 60vh !important;
+        width: 100% !important;
+        object-fit: contain;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+    #videoPlayer {
+        max-height: 50vh !important;
+    }
+}
+
+/* Desktop video player */
+@media (min-width: 1024px) {
+    .video-player-container {
+        max-width: 700px !important;
+    }
+    
+    #videoPlayer {
+        max-height: 500px !important;
+    }
+}
+
+/* Large desktop */
+@media (min-width: 1280px) {
+    .video-player-container {
+        max-width: 750px !important;
+    }
+}
+
+/* Search clear button styles */
+#clearSearchBtn {
+    transition: all 0.2s ease-in-out;
+    padding: 0.25rem;
+    border-radius: 50%;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#clearSearchBtn:hover {
+    background-color: #f3f4f6;
+}
+
+/* Mobile responsive for search clear button */
+@media (max-width: 639px) {
+    #clearSearchBtn {
+        width: 1.25rem;
+        height: 1.25rem;
+        right: 0.75rem;
+    }
+    
+    #searchInput {
+        padding-right: 2.5rem !important;
+    }
+}
+
+/* YouTube-style Settings */
+.settings-btn {
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.settings-menu {
+    backdrop-filter: blur(20px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.settings-section:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.settings-option {
+    transition: all 0.2s ease;
+}
+
+.settings-option:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Hide settings button when video is not hovered */
+#videoPlayer:not(:hover) .settings-btn {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#videoPlayer:hover .settings-btn {
+    opacity: 1;
+}
+
+/* ===== UNIVERSAL VIDEO CARD STYLING ===== */
+
+/* Remove any white backgrounds and borders */
+.video-card,
+[data-video-id],
+#latestVideos > div,
+#searchResultsGrid > div,
+#categorySections .grid > div,
+.category-section .grid > div,
+#relatedVideos .video-card {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Clean text styling */
+.video-card > div:not(.relative),
+[data-video-id] > div:not(.relative),
+#relatedVideos .video-card > div:not(.relative) {
+    padding: 0.5rem 0.25rem 0 0.25rem !important;
+    margin: 0 !important;
+}
+
+/* Hover effects */
+.video-card:hover img,
+[data-video-id]:hover img,
+#relatedVideos .video-card:hover img {
+    box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.15) !important;
+    transform: scale(1.02) !important;
+}
+
+/* Grid gaps */
+#latestVideos,
+#searchResultsGrid,
+#categorySections .grid,
+.category-section .grid,
+.video-grid,
+.grid,
+#relatedVideos {
+    gap: 0.5rem !important;
+}
+
+/* Age Verification Modal Styles */
+#ageVerificationModal {
+  backdrop-filter: blur(5px);
+}
+
+.age-modal-content {
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Prevent body scroll when modal is open */
+body.no-scroll {
+  overflow: hidden;
+}
+    /* Prevent scrolling when age modal is open */
+    body.age-modal-open {
+        overflow: hidden;
+        height: 100vh;
+    }
+    
+    /* Ensure modal is properly hidden by default */
+    .hidden {
+        display: none !important;
+    }

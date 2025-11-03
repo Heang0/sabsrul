@@ -10,12 +10,20 @@ const videoSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  // ADD THIS - shortId field
+  shortId: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true,
+    default: () => Math.random().toString(36).substr(2, 9) // Auto-generate if not provided
+  },
   // MAIN video URL (for backward compatibility)
   videoUrl: {
     type: String,
     required: true
   },
-  // MULTIPLE QUALITY URLs - ADD THIS
+  // MULTIPLE QUALITY URLs
   qualities: {
     '1080': { type: String },  // 1080p URL
     '720': { type: String },   // 720p URL  
@@ -50,6 +58,10 @@ const videoSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  originalFileSize: {
+    type: Number,
+    required: false
+  },
   thumbnails: [{ type: String }],
   status: {
     type: String,
@@ -68,4 +80,5 @@ const videoSchema = new mongoose.Schema({
 videoSchema.index({ title: 'text', description: 'text' });
 videoSchema.index({ category: 1, createdAt: -1 });
 
-module.exports = mongoose.model('Video', videoSchema);
+// FIX THIS LINE - change VideoSchema to videoSchema
+module.exports = mongoose.model('Video', videoSchema); // ✅ CORRECT

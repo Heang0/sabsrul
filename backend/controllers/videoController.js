@@ -278,89 +278,64 @@ exports.likeVideo = async (req, res) => {
     }
 };
 
-// UPLOAD VIDEO WITH COMPRESSION AND AUTO-THUMBNAILS
+// UPLOAD VIDEO WITHOUT COMPRESSION BUT KEEP 6 THUMBNAILS
 exports.uploadVideo = async (req, res) => {
   try {
-    console.log('📤 Uploading video to Cloudflare R2...');
+    console.log('📤 Uploading video to Cloudflare R2 (No compression)...');
     
     if (!req.files || !req.files.video) {
       return res.status(400).json({ message: 'Video file is required' });
     }
 
-    const { title, description, category, tags, selectedThumbnail } = req.body;
+    const { title, description, category, tags } = req.body;
     const videoFile = req.files.video[0];
 
-    console.log('🖼️ Starting video processing...');
-    console.log('📁 Original video size:', (videoFile.buffer.length / 1024 / 1024).toFixed(2), 'MB');
+    console.log('📁 Video size:', (videoFile.buffer.length / 1024 / 1024).toFixed(2), 'MB');
 
-    // Ensure temp directory exists
-    const tempDir = './temp_thumbs';
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-    }
-
-    // COMPRESS VIDEO BEFORE UPLOAD
-    let finalVideoBuffer = videoFile.buffer;
-    const compressedVideoPath = `./temp_thumbs/compressed_${Date.now()}.mp4`;
-    
-    try {
-      console.log('🎬 Compressing video (10-20% size reduction)...');
-      finalVideoBuffer = await compressVideo(videoFile.buffer, compressedVideoPath);
-      console.log('✅ Video compressed. New size:', (finalVideoBuffer.length / 1024 / 1024).toFixed(2), 'MB');
-      
-      const sizeReduction = ((videoFile.buffer.length - finalVideoBuffer.length) / videoFile.buffer.length * 100).toFixed(1);
-      console.log(`📉 Size reduced by: ${sizeReduction}%`);
-      
-    } catch (compressionError) {
-      console.log('⚠️ Compression failed, using original video:', compressionError.message);
-      // Continue with original video if compression fails
-      finalVideoBuffer = videoFile.buffer;
-    }
-
-    // Upload COMPRESSED video to R2
-    const videoKey = `videos/${Date.now()}_${videoFile.originalname.replace(/\.[^/.]+$/, '')}_compressed.mp4`;
+    // 🚀 UPLOAD ORIGINAL VIDEO DIRECTLY (NO COMPRESSION)
+    const videoKey = `videos/${Date.now()}_${videoFile.originalname}`;
     const videoUploadParams = {
       Bucket: process.env.R2_BUCKET_NAME,
       Key: videoKey,
-      Body: finalVideoBuffer,
+      Body: videoFile.buffer, // Use original buffer
       ContentType: videoFile.mimetype,
       ACL: 'public-read'
     };
 
-    console.log('☁️ Uploading compressed video to R2...');
+    console.log('☁️ Uploading original video to R2...');
     await r2Client.send(new PutObjectCommand(videoUploadParams));
     const videoUrl = `${process.env.R2_PUBLIC_URL}/${videoKey}`;
-    console.log('✅ Compressed video uploaded to R2:', videoUrl);
+    console.log('✅ Video uploaded to R2:', videoUrl);
 
-    // GENERATE 6 THUMBNAILS AT DIFFERENT TIMESTAMPS
+    // GENERATE 6 THUMBNAILS AT DIFFERENT TIMESTAMPS (KEEP ORIGINAL SETTINGS)
     let thumbnails = [];
     let selectedThumbnailUrl = `${process.env.R2_PUBLIC_URL}/default-thumbnail.jpg`;
 
     try {
-      console.log('🖼️ Generating 6 thumbnails from compressed video...');
+      console.log('🖼️ Generating 6 thumbnails from original video...');
       
-      // Use compressed video for thumbnails (smaller = faster processing)
+      // Use original video for thumbnails
       const tempVideoPath = `./temp_thumbs/video_${Date.now()}.mp4`;
-      fs.writeFileSync(tempVideoPath, finalVideoBuffer);
-      console.log('📁 Temporary compressed video file created for thumbnails');
+      fs.writeFileSync(tempVideoPath, videoFile.buffer);
+      console.log('📁 Temporary video file created for thumbnails');
 
-      // Generate 6 thumbnails at different timestamps
+      // Generate 6 thumbnails at different timestamps (ORIGINAL SETTINGS)
       const thumbBuffers = await new Promise((resolve, reject) => {
         console.log('🎬 Starting ffmpeg thumbnail generation...');
         
         ffmpeg(tempVideoPath)
           .screenshots({
-            count: 6,
-            timestamps: ['10%', '25%', '40%', '55%', '70%', '85%'],
+            count: 6, // Keep 6 thumbnails
+            timestamps: ['10%', '25%', '40%', '55%', '70%', '85%'], // Original timestamps
             filename: 'thumb_%i.jpg',
-            folder: tempDir,
-            size: '800x450'
+            folder: './temp_thumbs',
+            size: '800x450' // Original size
           })
           .on('start', (commandLine) => {
             console.log('🚀 FFmpeg thumbnail process started');
           })
           .on('end', () => {
-            console.log('✅ Thumbnails generated successfully');
+            console.log('✅ 6 thumbnails generated successfully');
             const buffers = [];
             try {
               // Read generated thumbnails
@@ -403,7 +378,7 @@ exports.uploadVideo = async (req, res) => {
       console.log('✅ Thumbnail buffers created:', thumbBuffers.length);
 
       // Upload all 6 thumbnails to R2
-      console.log('☁️ Uploading thumbnails to R2...');
+      console.log('☁️ Uploading 6 thumbnails to R2...');
       for (let i = 0; i < thumbBuffers.length; i++) {
         const thumbKey = `thumbnails/${Date.now()}_thumb_${i + 1}.jpg`;
         const thumbUploadParams = {
@@ -431,7 +406,7 @@ exports.uploadVideo = async (req, res) => {
     } catch (thumbError) {
       console.log('⚠️ Thumbnail generation failed:', thumbError.message);
       
-      // SIMPLE FALLBACK - No category colors needed
+      // FALLBACK - Create 6 placeholder thumbnails
       for (let i = 0; i < 6; i++) {
         thumbnails.push(`https://via.placeholder.com/800x450/1a1a1a/6b7280?text=${encodeURIComponent(title)}+${i + 1}`);
       }
@@ -440,20 +415,16 @@ exports.uploadVideo = async (req, res) => {
       console.log('🔄 Using fallback thumbnails');
     }
 
-    // Use selected thumbnail if provided, otherwise use first one
-    const finalThumbnail = selectedThumbnail || selectedThumbnailUrl;
-
-    // EXTRACT VIDEO DURATION from compressed video
+    // EXTRACT VIDEO DURATION from original video
     let videoDuration = 0;
     let durationTempPath = '';
     
     try {
-        console.log('⏱️ Extracting video duration from compressed video...');
+        console.log('⏱️ Extracting video duration from original video...');
         
-        // Create a new temporary file for duration extraction
+        // Create a temporary file for duration extraction
         durationTempPath = `./temp_thumbs/duration_${Date.now()}.mp4`;
-        fs.writeFileSync(durationTempPath, finalVideoBuffer);
-        console.log('📁 Duration temp file created:', fs.existsSync(durationTempPath));
+        fs.writeFileSync(durationTempPath, videoFile.buffer);
 
         // Get duration using ffprobe
         const durationInfo = await new Promise((resolve, reject) => {
@@ -463,21 +434,20 @@ exports.uploadVideo = async (req, res) => {
             });
         });
         
-        videoDuration = Math.round(durationInfo.format.duration); // Duration in seconds
+        videoDuration = Math.round(durationInfo.format.duration);
         console.log('⏱️ Video duration extracted:', videoDuration, 'seconds');
         
         // Clean up duration temp file
         if (fs.existsSync(durationTempPath)) {
             fs.unlinkSync(durationTempPath);
-            console.log('✅ Duration temp file cleaned up');
         }
         
     } catch (durationError) {
         console.log('⚠️ Could not extract duration:', durationError.message);
         
         // Estimate duration based on file size (fallback)
-        const fileSizeMB = finalVideoBuffer.length / (1024 * 1024);
-        const estimatedMinutes = Math.max(1, Math.round(fileSizeMB / 2)); // ~2MB per minute
+        const fileSizeMB = videoFile.buffer.length / (1024 * 1024);
+        const estimatedMinutes = Math.max(1, Math.round(fileSizeMB / 2));
         videoDuration = estimatedMinutes * 60;
         console.log('⏱️ Using estimated duration:', videoDuration, 'seconds');
         
@@ -496,7 +466,7 @@ exports.uploadVideo = async (req, res) => {
         title,
         description: description || '',
         videoUrl: videoUrl,
-        thumbnail: finalThumbnail,
+        thumbnail: selectedThumbnailUrl,
         thumbnails: thumbnails,
         duration: videoDuration,
         category: category.toLowerCase(),
@@ -504,8 +474,7 @@ exports.uploadVideo = async (req, res) => {
         views: 0,
         likes: 0,
         status: 'published',
-        fileSize: finalVideoBuffer.length, // Store compressed file size
-        originalFileSize: videoFile.buffer.length // Store original size for comparison
+        fileSize: videoFile.buffer.length
     });
 
     await video.save();
@@ -513,16 +482,13 @@ exports.uploadVideo = async (req, res) => {
     
     res.status(201).json({
       success: true,
-      message: 'Video compressed and uploaded with 6 auto-thumbnails!',
+      message: 'Video uploaded successfully with 6 thumbnails!',
       video: {
         id: video._id,
         title: video.title,
         url: video.videoUrl,
-        thumbnail: finalThumbnail,
-        allThumbnails: thumbnails,
-        originalSize: (videoFile.buffer.length / 1024 / 1024).toFixed(2),
-        compressedSize: (finalVideoBuffer.length / 1024 / 1024).toFixed(2),
-        sizeReduction: ((videoFile.buffer.length - finalVideoBuffer.length) / videoFile.buffer.length * 100).toFixed(1) + '%'
+        thumbnail: selectedThumbnailUrl,
+        allThumbnails: thumbnails
       }
     });
 

@@ -71,11 +71,16 @@ try {
 
 const sendPasswordResetEmail = async (email, resetToken) => {
   try {
-    const clientURL = process.env.CLIENT_URL || 'http://localhost:3000';
+    // Use environment variable for client URL, fallback to current domain
+    const clientURL = process.env.CLIENT_URL || 
+                     process.env.NODE_ENV === 'production' ? 
+                     'https://your-domain.com' : // Replace with your actual domain
+                     'http://localhost:3000';
+    
     const resetLink = `${clientURL}/reset-password.html?token=${resetToken}`;
     
     const mailOptions = {
-      from: `"SabSrul" <${process.env.EMAIL_USER || 'noreply@sabsrul.com'}>`,
+      from: `"SabSrul" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'SabSrul - Password Reset Request',
       html: `
@@ -120,27 +125,13 @@ const sendPasswordResetEmail = async (email, resetToken) => {
       `
     };
 
-    const info = await emailService.sendMail(mailOptions);
-    
-    if (info.simulated) {
-      console.log('✅ SIMULATED: Password reset email would be sent to:', email);
-      console.log('🔗 TEST RESET LINK:', resetLink);
-      console.log('🔑 RESET TOKEN (for manual testing):', resetToken);
-    } else {
-      console.log(`✅ Password reset email sent to: ${email}`);
-      console.log(`📧 Message ID: ${info.messageId}`);
-    }
-    
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Password reset email sent to: ${email}`);
+    console.log(`🔗 Reset Link: ${resetLink}`);
     return true;
   } catch (error) {
     console.error('❌ Error sending password reset email:', error);
-    
-    // Even if email fails, we still want the reset process to work for testing
-    console.log('💡 DEVELOPMENT: Password reset token generated:', resetToken);
-    console.log('💡 DEVELOPMENT: Use this URL to reset:', `${process.env.CLIENT_URL || 'http://localhost:3000'}/reset-password.html?token=${resetToken}`);
-    
-    // For development, we'll consider this a success so testing can continue
-    return true;
+    throw new Error('Failed to send password reset email');
   }
 };
 

@@ -47,10 +47,13 @@ class EmailJSService {
 
             console.log('✅ Email sent via Gmail (EmailJS) to:', email);
             console.log('📨 Response status:', response.status);
+            console.log('📧 Response text:', response.text);
             return true;
 
         } catch (error) {
             console.error('❌ EmailJS Node.js error:', error);
+            console.error('❌ Error status:', error.status);
+            console.error('❌ Error text:', error.text);
             return false;
         }
     }

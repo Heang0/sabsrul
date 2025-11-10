@@ -249,33 +249,38 @@ exports.forgotPassword = async (req, res) => {
             });
         }
 
-        // Generate reset token using the method from User model
+        // Generate reset token
         const resetToken = user.generatePasswordReset();
         await user.save();
 
         console.log(`🔐 Generated reset token for ${email}: ${resetToken}`);
 
-        // Send email
+        // Create reset link for testing
+        const clientURL = process.env.CLIENT_URL || 'https://sabsrul.onrender.com';
+        const resetLink = `${clientURL}/reset-password.html?token=${resetToken}`;
+        
+        console.log('🔗 RESET LINK FOR TESTING:', resetLink);
+
+        // Try to send email
+        let emailSent = false;
         try {
             await sendPasswordResetEmail(email, resetToken);
-            
-            res.json({
-                success: true,
-                message: 'If an account with that email exists, a password reset link has been sent'
-            });
+            emailSent = true;
+            console.log('✅ Email sent successfully');
         } catch (emailError) {
-            console.error('❌ Email sending failed:', emailError);
-            
-            // Clear the token since email failed
-            user.resetPasswordToken = undefined;
-            user.resetPasswordExpires = undefined;
-            await user.save();
-            
-            return res.status(500).json({
-                success: false,
-                message: 'Failed to send reset email. Please try again later.'
-            });
+            console.error('❌ Email sending failed:', emailError.message);
+            emailSent = false;
         }
+
+        // Return response with reset link for testing
+        res.json({
+            success: true,
+            message: emailSent 
+                ? 'If an account with that email exists, a password reset link has been sent'
+                : 'Check server logs for reset link (email service issue)',
+            // Include reset link in development for testing
+            resetLink: process.env.NODE_ENV === 'production' ? undefined : resetLink
+        });
 
     } catch (error) {
         console.error('Forgot password error:', error);

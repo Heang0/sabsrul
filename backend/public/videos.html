@@ -276,12 +276,56 @@
                         <option value="draft">Draft</option>
                     </select>
                 </div>
-                
-                <!-- Thumbnail Preview -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Current Thumbnail</label>
-                    <img id="editThumbnailPreview" src="" alt="Thumbnail" class="w-32 h-18 object-cover rounded-lg border border-gray-300">
-                </div>
+
+                <!-- Thumbnail Editing Section -->
+                <div class="border-t border-gray-200 pt-4 mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Thumbnail</label>
+                    
+                                            <!-- Thumbnail Options in Edit Modal -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Thumbnail Options</label>
+                        
+                        <!-- Keep Current -->
+                        <div class="flex items-center mb-2">
+                            <input type="radio" id="keepThumbnail" name="thumbnailOption" value="keep" class="mr-2" checked>
+                            <label for="keepThumbnail" class="text-sm text-gray-700">Keep current thumbnail</label>
+                        </div>
+                        
+                        <!-- Upload New -->
+                        <div class="flex items-center mb-2">
+                            <input type="radio" id="uploadThumbnail" name="thumbnailOption" value="upload" class="mr-2">
+                            <label for="uploadThumbnail" class="text-sm text-gray-700">Upload new thumbnail</label>
+                        </div>
+                        <div id="editThumbnailUpload" class="hidden ml-6 mb-2">
+                            <input type="file" accept="image/*" class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        </div>
+                        
+                        <!-- Regenerate from Video -->
+                        <div class="flex items-center mb-2">
+                            <input type="radio" id="regenerateThumbnail" name="thumbnailOption" value="regenerate" class="mr-2">
+                            <label for="regenerateThumbnail" class="text-sm text-gray-700">Regenerate from video (6 options)</label>
+                        </div>
+                        <div id="regenerateThumbnailsBtn" class="hidden ml-6 mb-2">
+                            <button type="button" class="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition duration-200">
+                                Generate Thumbnails
+                            </button>
+                        </div>
+                        
+                        <!-- Use URL -->
+                        <div class="flex items-center mb-2">
+                            <input type="radio" id="urlThumbnail" name="thumbnailOption" value="url" class="mr-2">
+                            <label for="urlThumbnail" class="text-sm text-gray-700">Use image URL</label>
+                        </div>
+                        <div id="editThumbnailUrl" class="hidden ml-6 mb-2">
+                            <input type="url" placeholder="https://example.com/image.jpg" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                        </div>
+                        
+                        <!-- New Thumbnail Preview -->
+                        <div id="newThumbnailPreview" class="hidden mt-2 p-3 border rounded-lg bg-gray-50">
+                            <p class="text-sm font-medium text-gray-700 mb-1">New Thumbnail Preview:</p>
+                            <img id="newThumbnailImage" src="" alt="New thumbnail" class="w-32 h-18 object-cover rounded">
+                        </div>
+                    </div>
                 
                 <div class="flex justify-end space-x-3 pt-4">
                     <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition duration-200">
@@ -294,6 +338,36 @@
             </form>
         </div>
     </div>
+
+<!-- Thumbnail Selection Modal -->
+<div id="thumbnailSelectionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Select Thumbnail</h3>
+            
+            <!-- Selected Thumbnail Preview -->
+            <div class="mb-4 p-4 border rounded-lg bg-gray-50">
+                <p class="text-sm font-medium text-gray-700 mb-2">Selected Thumbnail Preview:</p>
+                <img id="selectedThumbnailImage" src="" alt="Selected thumbnail" class="w-64 h-36 object-cover rounded-lg mx-auto">
+            </div>
+            
+            <!-- Thumbnail Grid -->
+            <div id="thumbnailSelectionGrid" class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                <!-- Thumbnails will be dynamically inserted here -->
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-3">
+                <button id="cancelThumbnailSelection" type="button" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition duration-200">
+                    Cancel
+                </button>
+                <button id="confirmThumbnailSelection" type="button" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200">
+                    Use This Thumbnail
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <script src="js/videos-management.js"></script>
 </body>

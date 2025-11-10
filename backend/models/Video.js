@@ -10,27 +10,23 @@ const videoSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  // ADD THIS - shortId field
   shortId: {
     type: String,
     required: true,
     unique: true,
     index: true,
-    default: () => Math.random().toString(36).substr(2, 9) // Auto-generate if not provided
+    default: () => Math.random().toString(36).substr(2, 9)
   },
-  // MAIN video URL (for backward compatibility)
   videoUrl: {
     type: String,
     required: true
   },
-  // MULTIPLE QUALITY URLs
   qualities: {
-    '1080': { type: String },  // 1080p URL
-    '720': { type: String },   // 720p URL  
-    '480': { type: String },   // 480p URL
-    '360': { type: String }    // 360p URL
+    '1080': { type: String },
+    '720': { type: String },  
+    '480': { type: String },
+    '360': { type: String }
   },
-  // Store the original video resolution
   originalQuality: {
     type: String,
     enum: ['360', '480', '720', '1080'],
@@ -58,6 +54,11 @@ const videoSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  // ADD: Track which users liked this video
+  likedBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   originalFileSize: {
     type: Number,
     required: false
@@ -71,6 +72,12 @@ const videoSchema = new mongoose.Schema({
   fileSize: {
     type: Number,
     default: 0
+  },
+  // ADD: Uploaded by user/admin
+  uploadedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   }
 }, {
   timestamps: true
@@ -80,5 +87,4 @@ const videoSchema = new mongoose.Schema({
 videoSchema.index({ title: 'text', description: 'text' });
 videoSchema.index({ category: 1, createdAt: -1 });
 
-// FIX THIS LINE - change VideoSchema to videoSchema
-module.exports = mongoose.model('Video', videoSchema); // ✅ CORRECT
+module.exports = mongoose.model('Video', videoSchema);

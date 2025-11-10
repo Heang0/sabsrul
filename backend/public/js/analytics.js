@@ -458,18 +458,20 @@ function showError(message) {
     }, 5000);
 }
 
-// Import auth functions
+// Auth functions - UPDATED
 function checkAuth() {
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-        window.location.href = 'login.html';
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    if (!token || user.role !== 'admin') {
+        window.location.href = 'admin-login.html';
         return false;
     }
     return true;
 }
 
 function getAuthHeaders() {
-    const token = localStorage.getItem('adminToken');
+    const token = localStorage.getItem('token');
     return {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
@@ -477,7 +479,7 @@ function getAuthHeaders() {
 }
 
 function logout() {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminData');
-    window.location.href = 'login.html';
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = 'admin-login.html';
 }

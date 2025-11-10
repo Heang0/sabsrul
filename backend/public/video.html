@@ -43,6 +43,86 @@
             height: 40px;
             animation: spin 1s linear infinite;
         }
+        /* Responsive video actions */
+@media (max-width: 640px) {
+    /* Make action buttons more compact on mobile */
+    #likeBtn, #watchLaterBtn, #addToPlaylistBtn, #shareBtn {
+        padding: 8px 12px !important;
+        font-size: 14px !important;
+    }
+    
+    /* Ensure buttons have enough spacing on mobile */
+    .flex-wrap {
+        gap: 8px !important;
+    }
+    
+    /* Make sure buttons don't get too small */
+    .min-w-\[120px\] {
+        min-width: 100px !important;
+    }
+}
+
+/* Ensure dropdown stays visible on mobile */
+#playlistDropdown {
+    min-width: 200px;
+}
+
+/* Better touch targets for mobile */
+@media (max-width: 768px) {
+    button {
+        min-height: 44px; /* Better touch target */
+    }
+    
+    /* Adjust video info spacing on mobile */
+    .video-info-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+/* Ensure dropdowns appear above other content */
+#mobileMenu,
+#userDropdownMenu,
+#desktopCategoriesMenu {
+    z-index: 1000 !important;
+}
+
+/* User avatar styling */
+#userAvatar {
+    object-fit: cover;
+    border: 2px solid #e5e7eb;
+    transition: border-color 0.3s ease;
+}
+
+#userAvatar:hover {
+    border-color: #9333ea;
+}
+
+/* User dropdown styling */
+#userDropdownMenu {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 1000;
+}
+
+#userDropdownMenu:not(.hidden) {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#userDropdownMenu.hidden {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+}
+
+/* Mobile menu styling */
+#mobileMenu {
+    z-index: 1000;
+}
+
+/* Categories dropdown styling */
+#desktopCategoriesMenu {
+    z-index: 1000;
+}
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -50,7 +130,6 @@
     </style>
 </head>
 <body class="bg-gray-50 font-inter">
-    <!-- AGE VERIFICATION MODAL - FIRST THING USERS SEE -->
     <!-- AGE VERIFICATION MODAL - FIRST THING USERS SEE -->
 <div id="ageVerificationModal" class="fixed inset-0 bg-black flex items-center justify-center z-[100] hidden">
         <div class="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl">
@@ -97,68 +176,111 @@
 
     <!-- WEBSITE CONTENT - HIDDEN UNTIL AGE VERIFICATION -->
     <div id="websiteContent" class="hidden">
-        <!-- Clean Navigation -->
-        <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center h-16">
-                    <!-- Logo & Back -->
-                    <div class="flex items-center space-x-4">
-                        <a href="index.html" class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors p-2 rounded-lg hover:bg-gray-100">
-                            <i class="fas fa-arrow-left"></i>
-                            <span class="hidden sm:inline">Back</span>
-                        </a>
-                        
-                        <a href="index.html" class="flex items-center space-x-3">
-                            <img src="img/sabsrul.png" alt="SabSrul" class="h-8 w-auto">
-                            <span class="text-lg font-bold text-gray-900">SabSrul</span>
-                        </a>
-                    </div>
+ <!-- Clean Navigation -->
+<!-- Clean Navigation - EXACT SAME AS INDEX.HTML -->
+<nav class="bg-white shadow-sm border-b sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <!-- Logo -->
+            <div class="flex items-center space-x-3">
+                <a href="index.html" class="flex items-center space-x-3">
+                    <img src="img/sabsrul.png" alt="SabSrul" class="h-8 w-auto">
+                    <span class="text-xl font-bold text-gray-900">SabSrul</span>
+                </a>
+            </div>
 
-                    <!-- Desktop Categories -->
-                    <div class="hidden lg:flex items-center space-x-6">
-                        <div class="relative group" id="categoriesDropdown">
-                            <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100">
-                                <span>Categories</span>
-                                <i class="fas fa-chevron-down text-xs mt-1"></i>
+            <!-- Desktop Categories -->
+            <div class="hidden lg:flex items-center space-x-6">
+                <div class="relative group" id="categoriesDropdown">
+                    <button class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-gray-100">
+                        <span>Categories</span>
+                        <i class="fas fa-chevron-down text-xs mt-1"></i>
+                    </button>
+                    <div id="desktopCategoriesMenu" class="absolute hidden right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-3 z-50">
+                        <div id="desktopCategories">
+                            <!-- Categories loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Mobile Menu & User Section -->
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <!-- Mobile Menu Button (HAMBURGER ICON) -->
+                <button id="mobileMenuButton" class="lg:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <!-- User Section -->
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <!-- Logged In User -->
+                    <div id="userSection" class="hidden">
+                        <div class="relative" id="userDropdown">
+                            <button id="userMenuButton" class="flex items-center space-x-1 sm:space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                                <img id="userAvatar" src="" alt="User" class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-purple-500">
+                                <span id="userName" class="text-sm font-medium hidden sm:block"></span>
+                                <i class="fas fa-chevron-down text-xs hidden sm:block"></i>
                             </button>
-                            <div id="desktopCategoriesMenu" class="absolute hidden right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-3 z-50">
-                                <div id="desktopCategories">
-                                    <!-- Categories loaded dynamically -->
-                                </div>
+                            
+                            <!-- User Dropdown Menu -->
+                            <div id="userDropdownMenu" class="absolute hidden right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+                                <a href="profile.html" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                    <i class="fas fa-user mr-3 w-4"></i>
+                                    My Profile
+                                </a>
+                                <div class="border-t border-gray-200 my-1"></div>
+                                <button id="logoutBtn" class="w-full text-left flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-50 transition-colors">
+                                    <i class="fas fa-sign-out-alt mr-3 w-4"></i>
+                                    Logout
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Mobile Menu -->
-                    <button id="mobileMenuButton" class="lg:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                
-
-                   <!-- Mobile Menu -->
-<div id="mobileMenu" class="lg:hidden hidden absolute top-16 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
-    <div class="px-4 py-6 space-y-6 max-h-[70vh] overflow-y-auto">
-        <!-- Categories Section -->
-        <div>
-            <h3 class="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide px-2">Categories</h3>
-            <div id="mobileCategories" class="space-y-2">
-                <!-- All Categories will be added dynamically by JavaScript -->
-            </div>
-        </div>
-        
-        <!-- Home Link -->
-        <div class="border-t border-gray-200 pt-4">
-            <a href="index.html" class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg">
-                <i class="fas fa-home text-purple-500 mr-3 w-4"></i>
-                <span>Home</span>
-            </a>
-        </div>
-    </div>
-</div>
+                    <!-- Login/Register Buttons -->
+                    <div id="authButtons" class="flex items-center space-x-2 sm:space-x-3">
+                        <a href="login.html" class="text-gray-600 hover:text-gray-900 font-medium transition-colors text-sm sm:text-base">
+                            Login
+                        </a>
+                        <a href="login.html" class="bg-purple-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg hover:bg-purple-700 transition-colors font-medium text-sm sm:text-base">
+                            Sign Up
+                        </a>
+                    </div>
                 </div>
             </div>
-        </nav>
+        </div>
 
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="lg:hidden hidden absolute top-16 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
+            <div class="px-4 py-6 space-y-6 max-h-[70vh] overflow-y-auto">
+                <!-- Categories Section -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wide px-2">Categories</h3>
+                    <div id="mobileCategories" class="space-y-2">
+                        <!-- Categories loaded dynamically -->
+                    </div>
+                </div>
+                
+                <!-- User Links (only show when logged in) -->
+                <div id="mobileUserLinks" class="border-t border-gray-200 pt-4 hidden">
+                    <a href="profile.html" class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg">
+                        <i class="fas fa-user text-purple-500 mr-3 w-4"></i>
+                        <span>My Profile</span>
+                    </a>
+                </div>
+                
+                <!-- Home Link -->
+                <div class="border-t border-gray-200 pt-4">
+                    <a href="index.html" class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg">
+                        <i class="fas fa-home text-purple-500 mr-3 w-4"></i>
+                        <span>Home</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+                                                                
         <!-- Search Section -->
         <div class="bg-white border-b">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -234,18 +356,51 @@
             </span>
         </div>
 
-        <!-- Actions -->
-        <div class="flex items-center space-x-3 mb-4">
-            <button id="likeBtn" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
-                <i class="far fa-heart"></i>
-                <span id="likeCount" class="font-medium">0</span>
-            </button>
-            <button id="shareBtn" class="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
-                <i class="fas fa-share"></i>
-                <span class="font-medium">Share</span>
-            </button>
+                    <!-- Actions - RESPONSIVE -->
+<div class="flex flex-wrap gap-2 mb-4">
+    <!-- Like Button -->
+    <button id="likeBtn" class="flex items-center space-x-2 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors like-btn flex-1 min-w-[120px] sm:flex-none sm:min-w-0">
+        <i class="far fa-heart text-sm"></i>
+        <span id="likeCount" class="font-medium text-sm">0</span>
+        <span class="font-medium text-sm sm:hidden">Like</span>
+    </button>
+    
+    <!-- Watch Later Button -->
+    <button id="watchLaterBtn" class="flex items-center space-x-2 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex-1 min-w-[120px] sm:flex-none sm:min-w-0">
+        <i class="far fa-clock text-sm"></i>
+        <span class="font-medium text-sm hidden sm:inline">Watch Later</span>
+        <span class="font-medium text-sm sm:hidden">Later</span>
+    </button>
+    
+    <!-- Add to Playlist Button -->
+    <div class="relative flex-1 min-w-[120px] sm:flex-none sm:min-w-0">
+        <button id="addToPlaylistBtn" class="flex items-center space-x-2 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors w-full justify-center sm:justify-start">
+            <i class="far fa-list-alt text-sm"></i>
+            <span class="font-medium text-sm hidden sm:inline">Playlist</span>
+            <span class="font-medium text-sm sm:hidden">Add</span>
+            <i class="fas fa-chevron-down text-xs ml-1 hidden sm:block"></i>
+        </button>
+        
+        <!-- Playlist Dropdown -->
+        <div id="playlistDropdown" class="absolute hidden right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+            <div id="playlistList" class="max-h-48 overflow-y-auto">
+                <!-- Playlists will be loaded here -->
+            </div>
+            <div class="border-t border-gray-200 mt-2 pt-2">
+                <button id="createPlaylistBtn" class="w-full text-left flex items-center px-4 py-2 text-sm text-purple-600 hover:bg-gray-50">
+                    <i class="fas fa-plus mr-3"></i>
+                    Create New Playlist
+                </button>
+            </div>
         </div>
+    </div>
 
+    <!-- Share Button -->
+    <button id="shareBtn" class="flex items-center space-x-2 px-3 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex-1 min-w-[120px] sm:flex-none sm:min-w-0">
+        <i class="fas fa-share text-sm"></i>
+        <span class="font-medium text-sm">Share</span>
+    </button>
+</div>
       
 
                         <!-- Tags -->
@@ -420,76 +575,85 @@
             </div>
         </footer>
     </div>
-
+<script src="js/main.js"></script>
+<script src="js/video.js"></script>
 <script>
-    // AGE VERIFICATION SYSTEM - SHOWS ONLY ONCE PER BROWSER SESSION
-    function checkAgeVerification() {
-        const ageVerified = sessionStorage.getItem('ageVerified');
+    // SIMPLE AGE VERIFICATION
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🎬 Video page loaded');
         
-        console.log('Age verification check:', ageVerified); // Debug log
+        const ageVerified = sessionStorage.getItem('ageVerified');
+        console.log('Age verification check:', ageVerified);
         
         if (ageVerified === 'true') {
-            // User already verified in this session - show website content immediately
-            showWebsiteContent();
+            // Show website content immediately
+            const content = document.getElementById('websiteContent');
+            if (content) {
+                content.classList.remove('hidden');
+            }
+            
+            // Initialize video page after main.js is loaded
+            setTimeout(initializeVideoPage, 100);
         } else {
-            // User not verified in this session - show modal
-            showAgeVerificationModal();
+            // Show age verification modal
+            const modal = document.getElementById('ageVerificationModal');
+            if (modal) modal.classList.remove('hidden');
+            document.body.classList.add('age-modal-open');
         }
-    }
+    });
 
     function confirmAge() {
-        console.log('Age confirmed'); // Debug log
-        // Set verification in sessionStorage (only lasts until browser is closed)
+        console.log('Age confirmed');
         sessionStorage.setItem('ageVerified', 'true');
-        showWebsiteContent();
-        hideAgeVerificationModal();
+        
+        const modal = document.getElementById('ageVerificationModal');
+        const content = document.getElementById('websiteContent');
+        
+        if (modal) modal.classList.add('hidden');
+        if (content) content.classList.remove('hidden');
+        document.body.classList.remove('age-modal-open');
+        
+        // Initialize video page
+        setTimeout(initializeVideoPage, 100);
     }
 
     function rejectAge() {
-        // Redirect to safe page (Google)
         window.location.href = 'https://www.google.com';
     }
 
-    function showWebsiteContent() {
-        const content = document.getElementById('websiteContent');
-        if (content) {
-            content.classList.remove('hidden');
-            console.log('Website content shown'); // Debug log
+    function initializeVideoPage() {
+        console.log('🎬 Initializing video page...');
+        
+        // Get video ID from URL
+        let videoId;
+        const pathSegments = window.location.pathname.split('/');
+        
+        if (window.location.pathname.startsWith('/video/') && pathSegments.length > 2) {
+            videoId = pathSegments[2];
+        } else {
+            const urlParams = new URLSearchParams(window.location.search);
+            videoId = urlParams.get('id');
         }
-        document.body.classList.remove('age-modal-open');
+        
+        console.log('Video ID:', videoId);
+        
+        if (videoId) {
+            // Load the video
+            if (typeof loadVideo === 'function') {
+                loadVideo(videoId);
+            } else {
+                console.error('loadVideo function not found in video.js');
+            }
+        } else {
+            console.error('No video ID found in URL');
+        }
     }
 
-    function showAgeVerificationModal() {
-        const modal = document.getElementById('ageVerificationModal');
-        if (modal) {
-            modal.classList.remove('hidden');
-            console.log('Age modal shown'); // Debug log
-        }
-        document.body.classList.add('age-modal-open');
-    }
-
-    function hideAgeVerificationModal() {
-        const modal = document.getElementById('ageVerificationModal');
-        if (modal) {
-            modal.classList.add('hidden');
-            console.log('Age modal hidden'); // Debug log
-        }
-    }
-
-    // Check age verification on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Page loaded, checking age verification...'); // Debug log
-        checkAgeVerification();
-    });
-
-    // For testing: reset age verification
+    // For testing
     function resetAgeVerification() {
         sessionStorage.removeItem('ageVerified');
-        console.log('Age verification reset'); // Debug log
         location.reload();
     }
 </script>
-
-    <script src="js/video.js"></script>
 </body>
 </html>

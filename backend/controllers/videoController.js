@@ -109,6 +109,155 @@ exports.getVideos = async (req, res) => {
     res.status(500).json({ message: 'Error fetching videos: ' + error.message });
   }
 };
+// Generate thumbnails from specific video
+exports.generateThumbnailsFromVideo = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        console.log('🎬 Starting thumbnail generation for video:', id);
+        
+        // Find the video
+        let video;
+        if (id.match(/^[0-9a-fA-F]{24}$/)) {
+            video = await Video.findById(id);
+        } else {
+            video = await Video.findOne({ shortId: id });
+        }
+        
+        if (!video) {
+            return res.status(404).json({ message: 'Video not found' });
+        }
+        
+        if (!video.videoUrl) {
+            return res.status(400).json({ message: 'Video URL not found' });
+        }
+        
+        console.log('📹 Video found:', video.title);
+        console.log('🔗 Video URL:', video.videoUrl);
+        
+        // Download video from R2 to temp file
+        console.log('📥 Downloading video from R2...');
+        const videoResponse = await fetch(video.videoUrl);
+        if (!videoResponse.ok) {
+            throw new Error(`Failed to download video: ${videoResponse.status}`);
+        }
+        
+        const videoBuffer = await videoResponse.arrayBuffer();
+        const tempVideoPath = `./temp_thumbs/video_${Date.now()}.mp4`;
+        fs.writeFileSync(tempVideoPath, Buffer.from(videoBuffer));
+        
+        console.log('✅ Video downloaded, generating frames...');
+        
+        // Generate 6 random frames from THIS video only
+        const thumbBuffers = await new Promise((resolve, reject) => {
+            // First get video duration to generate proper timestamps
+            ffmpeg.ffprobe(tempVideoPath, (err, metadata) => {
+                if (err) {
+                    console.error('❌ FFprobe error:', err);
+                    reject(err);
+                    return;
+                }
+                
+                const duration = metadata.format.duration;
+                console.log('⏱️ Video duration:', duration, 'seconds');
+                
+                // Generate 6 random timestamps within the video
+                const timestamps = [];
+                for (let i = 0; i < 6; i++) {
+                    const randomTime = Math.random() * duration * 0.8 + duration * 0.1; // Avoid first and last 10%
+                    timestamps.push(randomTime);
+                }
+                
+                console.log('🕒 Generating frames at timestamps:', timestamps.map(t => t.toFixed(1)));
+                
+                // Generate thumbnails at random timestamps
+                ffmpeg(tempVideoPath)
+                    .screenshots({
+                        timestamps: timestamps,
+                        filename: 'edit_thumb_%i.jpg',
+                        folder: './temp_thumbs',
+                        size: '800x450'
+                    })
+                    .on('start', (commandLine) => {
+                        console.log('🚀 FFmpeg started:', commandLine);
+                    })
+                    .on('end', () => {
+                        console.log('✅ Thumbnails generated from video');
+                        const buffers = [];
+                        try {
+                            // Read generated thumbnails
+                            for (let i = 0; i < timestamps.length; i++) {
+                                const thumbPath = `./temp_thumbs/edit_thumb_${i + 1}.jpg`;
+                                if (fs.existsSync(thumbPath)) {
+                                    const buffer = fs.readFileSync(thumbPath);
+                                    buffers.push(buffer);
+                                    console.log(`📸 Thumbnail ${i + 1} size:`, buffer.length, 'bytes');
+                                    // Clean up individual thumbnail file
+                                    fs.unlinkSync(thumbPath);
+                                }
+                            }
+                            
+                            // Clean up temp video file
+                            if (fs.existsSync(tempVideoPath)) {
+                                fs.unlinkSync(tempVideoPath);
+                            }
+                            
+                            console.log(`✅ Generated ${buffers.length} thumbnails`);
+                            resolve(buffers);
+                        } catch (fileError) {
+                            console.error('❌ File processing error:', fileError);
+                            reject(fileError);
+                        }
+                    })
+                    .on('error', (error) => {
+                        console.error('❌ Thumbnail generation error:', error);
+                        // Clean up on error
+                        try {
+                            if (fs.existsSync(tempVideoPath)) fs.unlinkSync(tempVideoPath);
+                        } catch (cleanupError) {
+                            console.error('Cleanup error:', cleanupError);
+                        }
+                        reject(error);
+                    });
+            });
+        });
+        
+        // Upload thumbnails to R2 and return URLs
+        const thumbnailUrls = [];
+        console.log('☁️ Uploading thumbnails to R2...');
+        
+        for (let i = 0; i < thumbBuffers.length; i++) {
+            const thumbKey = `thumbnails/edit_${Date.now()}_${i + 1}.jpg`;
+            const thumbUploadParams = {
+                Bucket: process.env.R2_BUCKET_NAME,
+                Key: thumbKey,
+                Body: thumbBuffers[i],
+                ContentType: 'image/jpeg',
+                ACL: 'public-read'
+            };
+            
+            await r2Client.send(new PutObjectCommand(thumbUploadParams));
+            const thumbUrl = `${process.env.R2_PUBLIC_URL}/${thumbKey}`;
+            thumbnailUrls.push(thumbUrl);
+            console.log(`✅ Thumbnail ${i + 1} uploaded:`, thumbUrl);
+        }
+        
+        console.log('🎉 Successfully generated', thumbnailUrls.length, 'thumbnails from video');
+        
+        res.json({
+            success: true,
+            thumbnails: thumbnailUrls,
+            message: `Generated ${thumbnailUrls.length} thumbnails from video`
+        });
+        
+    } catch (error) {
+        console.error('❌ Error generating thumbnails from video:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Error generating thumbnails: ' + error.message 
+        });
+    }
+};
 
 exports.getVideo = async (req, res) => {
     try {
@@ -461,21 +610,22 @@ exports.uploadVideo = async (req, res) => {
         }
     }
 
-    // Create video in database
-    const video = new Video({
-        title,
-        description: description || '',
-        videoUrl: videoUrl,
-        thumbnail: selectedThumbnailUrl,
-        thumbnails: thumbnails,
-        duration: videoDuration,
-        category: category.toLowerCase(),
-        tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
-        views: 0,
-        likes: 0,
-        status: 'published',
-        fileSize: videoFile.buffer.length
-    });
+  // In the uploadVideo function, when creating the video:
+const video = new Video({
+    title,
+    description: description || '',
+    videoUrl: videoUrl,
+    thumbnail: selectedThumbnailUrl,
+    thumbnails: thumbnails,
+    duration: videoDuration,
+    category: category.toLowerCase(),
+    tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+    views: 0,
+    likes: 0,
+    status: 'published',
+    fileSize: videoFile.buffer.length,
+    uploadedBy: req.user ? req.user._id : null // Add this line
+});
 
     await video.save();
     console.log('✅ Video saved to database:', video._id);

@@ -1,9 +1,4 @@
 console.log('✅ video.js loaded!');
-console.log('🔍 DOM Elements Check:');
-console.log('- videoPlayer:', document.getElementById('videoPlayer'));
-console.log('- relatedLoadMore:', document.getElementById('relatedLoadMore'));
-console.log('- relatedVideos:', document.getElementById('relatedVideos'));
-console.log('- searchInput:', document.getElementById('searchInput'));
 
 // DOM Elements
 const videoLoading = document.getElementById('videoLoading');
@@ -12,7 +7,6 @@ const videoError = document.getElementById('videoError');
 const videoTitle = document.getElementById('videoTitle');
 const videoViews = document.getElementById('videoViews');
 const videoDate = document.getElementById('videoDate');
-const videoDescription = document.getElementById('videoDescription');
 const videoCategory = document.getElementById('videoCategory');
 const videoTags = document.getElementById('videoTags');
 const likeBtn = document.getElementById('likeBtn');
@@ -21,76 +15,57 @@ const shareBtn = document.getElementById('shareBtn');
 const relatedLoading = document.getElementById('relatedLoading');
 const relatedVideos = document.getElementById('relatedVideos');
 const noRelatedVideos = document.getElementById('noRelatedVideos');
-const relatedCount = document.getElementById('relatedCount');
+const videoPlayer = document.getElementById('videoPlayer');
+const relatedLoadMore = document.getElementById('relatedLoadMore');
 
-// ADD THESE MISSING ELEMENTS:
-const videoPlayer = document.getElementById('videoPlayer'); // This was missing!
-const relatedLoadMore = document.getElementById('relatedLoadMore'); // This was missing!
-
-// Settings control elements
-const settingsButton = document.getElementById('settingsButton');
-const settingsMenu = document.getElementById('settingsMenu');
-const qualityOptions = document.getElementById('qualityOptions');
+// Interaction buttons
+const watchLaterBtn = document.getElementById('watchLaterBtn');
+const addToPlaylistBtn = document.getElementById('addToPlaylistBtn');
+const playlistDropdown = document.getElementById('playlistDropdown');
+const playlistList = document.getElementById('playlistList');
+const createPlaylistBtn = document.getElementById('createPlaylistBtn');
 
 // Global variables
-let availableQualities = [];
-let currentQuality = 'auto';
 let currentVideoId = null;
 let hasLiked = false;
-let isSettingsMenuOpen = false;
+let hasWatchLater = false;
+let userPlaylists = [];
 
-// RELATED VIDEOS PAGINATION - ADD THESE
+// RELATED VIDEOS PAGINATION
 let relatedVideosPage = 1;
 let hasMoreRelatedVideos = false;
 let currentRelatedCategory = '';
 
 // Initialize the page
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎬 Video page loaded');
-    
-    // Get video ID from URL - support both formats
-    let videoId;
-    const pathSegments = window.location.pathname.split('/');
-    
-    if (window.location.pathname.startsWith('/video/') && pathSegments.length > 2) {
-        // Clean URL format: /video/CB9RpD0f4o
-        videoId = pathSegments[2];
-    } else {
-        // Query parameter format: /video.html?id=CB9RpD0f4o
-        const urlParams = new URLSearchParams(window.location.search);
-        videoId = urlParams.get('id');
-    }
-    
-    console.log('Video ID:', videoId);
-    
-    if (videoId) {
-        initializeVideoPage(videoId);
-    } else {
-        showVideoError();
-    }
-});
+let pageInitialized = false;
 
-async function initializeVideoPage(videoId) {
-    setupEventListeners();
-    loadCategories(); // Load categories for navigation
-    loadVideo(videoId);
-    
-    // Check if we came from a tag search and update UI accordingly
-    const urlParams = new URLSearchParams(window.location.search);
-    const tag = urlParams.get('tag');
-    if (tag) {
-        console.log(`🎯 Came from tag search: ${tag}`);
-        // The search bar will be automatically populated by setupVideoSearch
-    }
-}
+// REMOVED: The duplicate navigation functions that were causing errors
 
+// Setup event listeners for video-specific interactions
 function setupEventListeners() {
-
-      // Search functionality - ADD THIS
+    console.log('🎬 Setting up video event listeners');
+    
+    // Search functionality
     setupVideoSearch();
+    
     // Like button
     if (likeBtn) {
         likeBtn.addEventListener('click', handleLike);
+    }
+
+    // Watch Later button
+    if (watchLaterBtn) {
+        watchLaterBtn.addEventListener('click', handleWatchLater);
+    }
+
+    // Add to Playlist button
+    if (addToPlaylistBtn) {
+        addToPlaylistBtn.addEventListener('click', togglePlaylistDropdown);
+    }
+
+    // Create Playlist button
+    if (createPlaylistBtn) {
+        createPlaylistBtn.addEventListener('click', createNewPlaylist);
     }
 
     // Share button
@@ -98,239 +73,394 @@ function setupEventListeners() {
         shareBtn.addEventListener('click', handleShare);
     }
 
-    // Mobile menu toggle
-    const mobileMenuButton = document.getElementById('mobileMenuButton');
-    const mobileMenu = document.getElementById('mobileMenu');
-    
-    if (mobileMenuButton && mobileMenu) {
-        mobileMenuButton.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const isHidden = mobileMenu.classList.contains('hidden');
-            
-            // Close all other menus first
-            closeAllMenus();
-            
-            // Toggle mobile menu
-            if (isHidden) {
-                mobileMenu.classList.remove('hidden');
-                addMobileBackdrop();
-            } else {
-                mobileMenu.classList.add('hidden');
-                removeMobileBackdrop();
+    // ADD THIS: Event delegation for related video clicks
+    document.addEventListener('click', function(e) {
+        const videoCard = e.target.closest('.video-card');
+        if (videoCard) {
+            const videoId = videoCard.getAttribute('data-video-id');
+            if (videoId) {
+                navigateToVideo(videoId);
             }
-        });
-
-        // Close mobile menu when clicking a category
-        mobileMenu.addEventListener('click', function(e) {
-            if (e.target.closest('a')) {
-                setTimeout(() => {
-                    mobileMenu.classList.add('hidden');
-                    removeMobileBackdrop();
-                }, 100);
-            }
-        });
-    }
-
-    // Close menus when clicking outside
-    document.addEventListener('click', function(event) {
-        const categoriesDropdown = document.getElementById('categoriesDropdown');
-        const desktopCategoriesMenu = document.getElementById('desktopCategoriesMenu');
-        const mobileMenuButton = document.getElementById('mobileMenuButton');
-        const mobileMenu = document.getElementById('mobileMenu');
-        
-        // Close categories dropdown if clicking outside
-        if (categoriesDropdown && desktopCategoriesMenu && 
-            !categoriesDropdown.contains(event.target) && 
-            !desktopCategoriesMenu.contains(event.target)) {
-            desktopCategoriesMenu.classList.add('hidden');
-        }
-        
-        // Close mobile menu if clicking outside
-        if (mobileMenu && mobileMenuButton && 
-            !mobileMenu.contains(event.target) && 
-            !mobileMenuButton.contains(event.target) &&
-            !mobileMenu.classList.contains('hidden')) {
-            mobileMenu.classList.add('hidden');
-            removeMobileBackdrop();
-        }
-        
-        // Close settings menu if clicking outside
-        if (isSettingsMenuOpen && 
-            !settingsMenu.contains(event.target) && 
-            !settingsButton.contains(event.target)) {
-            closeSettingsMenu();
         }
     });
-
-    // Add event delegation for related video clicks
-document.addEventListener('click', function(e) {
-    const videoCard = e.target.closest('[data-video-id]');
-    if (videoCard) {
-        const videoId = videoCard.getAttribute('data-video-id');
-        window.location.href = `video.html?id=${videoId}`;
-    }
-});
-
-    // Handle escape key to close all menus
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape') {
-            closeAllMenus();
-            removeMobileBackdrop();
-        }
-    });
-
-    // Categories dropdown toggle (for desktop)
-    setupCategoriesDropdown();
-    
-    // Video player controls
-    const videoPlayer = document.getElementById('videoPlayer');
-    if (videoPlayer) {
-        videoPlayer.addEventListener('mouseenter', showCustomControls);
-        videoPlayer.addEventListener('mouseleave', hideCustomControls);
-        
-        // Touch events for mobile
-        videoPlayer.addEventListener('touchstart', showCustomControls);
-        videoPlayer.addEventListener('touchend', function() {
-            setTimeout(hideCustomControls, 3000);
-        });
-    }
 }
 
-// Categories functionality
-async function loadCategories() {
-    try {
-        const response = await fetch('/api/categories');
-        const categories = await response.json();
-        
-        displayCategories(categories);
-    } catch (error) {
-        console.error('Error loading categories:', error);
-    }
+// Navigate to video page
+function navigateToVideo(videoId) {
+    window.location.href = `/video.html?id=${videoId}`;
 }
 
-function displayCategories(categories) {
-    const desktopCategories = document.getElementById('desktopCategories');
-    const mobileCategories = document.getElementById('mobileCategories');
-    
-    if (!categories || categories.length === 0) {
-        console.log('No categories available');
+// ==================== INTERACTION FUNCTIONS ====================
+
+async function handleLike() {
+    const token = localStorage.getItem('token');
+    if (!token || !currentVideoId) {
+        showLoginPrompt('like videos');
         return;
     }
-    
-    // Desktop categories dropdown
-    if (desktopCategories) {
-        desktopCategories.innerHTML = categories.map(category => `
-            <a href="index.html?category=${category.slug || category.name}" 
-               class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors capitalize">
-                ${category.name}
-            </a>
-        `).join('');
-    }
-    
-    // Mobile categories menu - WITH ALL CATEGORIES
-    if (mobileCategories) {
-        mobileCategories.innerHTML = `
-            <a href="index.html?category=all" 
-               class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg border border-gray-100">
-                <i class="fas fa-play-circle text-purple-500 mr-3 w-4"></i>
-                <span>All Categories</span>
-            </a>
-            ${categories.map(category => `
-                <a href="index.html?category=${category.slug || category.name}" 
-                   class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg border border-gray-100">
-                    <i class="fas fa-play-circle text-purple-500 mr-3 w-4"></i>
-                    <span class="capitalize">${category.name}</span>
-                </a>
-            `).join('')}
-        `;
-    }
-}
 
-function setupCategoriesDropdown() {
-    const categoriesDropdown = document.getElementById('categoriesDropdown');
-    const categoriesButton = categoriesDropdown ? categoriesDropdown.querySelector('button') : null;
-    const desktopCategoriesMenu = document.getElementById('desktopCategoriesMenu');
-    
-    if (categoriesButton && desktopCategoriesMenu) {
-        // Toggle menu on click
-        categoriesButton.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const isHidden = desktopCategoriesMenu.classList.contains('hidden');
-            
-            // Close all other open menus first
-            closeAllMenus();
-            
-            // Toggle this menu
-            if (isHidden) {
-                desktopCategoriesMenu.classList.remove('hidden');
-            } else {
-                desktopCategoriesMenu.classList.add('hidden');
+    try {
+        const response = await fetch(`/api/interactions/like/${currentVideoId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
         });
+
+        if (!response.ok) {
+            simulateLikeFunctionality();
+            return;
+        }
+
+        const data = await response.json();
         
-        // Keep menu open when hovering over it
-        desktopCategoriesMenu.addEventListener('mouseenter', function() {
-            desktopCategoriesMenu.classList.remove('hidden');
-        });
+        hasLiked = data.liked;
         
-        desktopCategoriesMenu.addEventListener('mouseleave', function() {
-            desktopCategoriesMenu.classList.add('hidden');
-        });
+        // Update like button UI
+        if (likeBtn) {
+            if (data.liked) {
+                likeBtn.innerHTML = '<i class="fas fa-heart text-red-500"></i><span class="font-medium ml-2">Liked</span>';
+                likeBtn.classList.add('text-red-600', 'bg-red-50', 'border-red-200');
+            } else {
+                likeBtn.innerHTML = '<i class="far fa-heart"></i><span class="font-medium ml-2">Like</span>';
+                likeBtn.classList.remove('text-red-600', 'bg-red-50', 'border-red-200');
+            }
+        }
+        
+        // Update like count if provided
+        if (data.likes !== undefined && likeCount) {
+            likeCount.textContent = formatLikes(data.likes);
+        }
+        
+    } catch (error) {
+        console.error('Error liking video:', error);
+        simulateLikeFunctionality();
     }
 }
 
-// Mobile backdrop functions
-function addMobileBackdrop() {
-    let backdrop = document.getElementById('mobileBackdrop');
-    if (!backdrop) {
-        backdrop = document.createElement('div');
-        backdrop.id = 'mobileBackdrop';
-        backdrop.className = 'fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden';
-        backdrop.addEventListener('click', function() {
-            closeAllMenus();
-            removeMobileBackdrop();
-        });
-        document.body.appendChild(backdrop);
-    }
-    backdrop.classList.remove('hidden');
-}
-
-function removeMobileBackdrop() {
-    const backdrop = document.getElementById('mobileBackdrop');
-    if (backdrop) {
-        backdrop.classList.add('hidden');
-    }
-}
-
-function closeAllMenus() {
-    const settingsMenu = document.getElementById('settingsMenu');
-    const desktopCategoriesMenu = document.getElementById('desktopCategoriesMenu');
-    const mobileMenu = document.getElementById('mobileMenu');
+function simulateLikeFunctionality() {
+    hasLiked = !hasLiked;
     
-    if (settingsMenu) settingsMenu.classList.add('hidden');
-    if (desktopCategoriesMenu) desktopCategoriesMenu.classList.add('hidden');
-    if (mobileMenu) mobileMenu.classList.add('hidden');
+    // Update like button UI
+    if (likeBtn) {
+        if (hasLiked) {
+            likeBtn.innerHTML = '<i class="fas fa-heart text-red-500 text-sm"></i><span class="font-medium text-sm ml-2">' + (window.innerWidth < 640 ? 'Liked' : (parseInt(likeCount.textContent) || 0) + 1) + '</span>';
+            likeBtn.classList.add('text-red-600', 'bg-red-50', 'border-red-200');
+            
+            // Update like count
+            const currentCount = parseInt(likeCount.textContent) || 0;
+            likeCount.textContent = currentCount + 1;
+        } else {
+            likeBtn.innerHTML = '<i class="far fa-heart text-sm"></i><span class="font-medium text-sm ml-2 hidden sm:inline">Like</span><span class="font-medium text-sm ml-2 sm:hidden">Like</span>';
+            likeBtn.classList.remove('text-red-600', 'bg-red-50', 'border-red-200');
+            
+            // Update like count
+            const currentCount = parseInt(likeCount.textContent) || 1;
+            likeCount.textContent = Math.max(0, currentCount - 1);
+        }
+    }
     
-    isSettingsMenuOpen = false;
-    removeMobileBackdrop();
+    // Store in localStorage for persistence
+    const token = localStorage.getItem('token');
+    if (token) {
+        const userLikes = JSON.parse(localStorage.getItem('userLikes') || '{}');
+        if (hasLiked) {
+            userLikes[currentVideoId] = true;
+        } else {
+            delete userLikes[currentVideoId];
+        }
+        localStorage.setItem('userLikes', JSON.stringify(userLikes));
+    }
+    
+    // Update the UI
+    updateInteractionUI();
 }
 
-// Video player controls
-function showCustomControls() {
-    if (settingsButton) {
-        settingsButton.classList.remove('hidden');
+async function handleWatchLater() {
+    const token = localStorage.getItem('token');
+    if (!token || !currentVideoId) {
+        showLoginPrompt('add videos to watch later');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/interactions/watch-later/${currentVideoId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            simulateWatchLaterFunctionality();
+            return;
+        }
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            hasWatchLater = data.watchLater;
+            updateWatchLaterUI();
+        }
+    } catch (error) {
+        console.error('Error with watch later:', error);
+        simulateWatchLaterFunctionality();
     }
 }
 
-function hideCustomControls() {
-    if (settingsButton && !isSettingsMenuOpen) {
-        settingsButton.classList.add('hidden');
+// Simulate watch later functionality
+function simulateWatchLaterFunctionality() {
+    hasWatchLater = !hasWatchLater;
+    
+    // Update watch later button UI
+    if (watchLaterBtn) {
+        if (hasWatchLater) {
+            watchLaterBtn.innerHTML = '<i class="fas fa-clock text-yellow-500 text-sm"></i><span class="font-medium text-sm ml-2 hidden sm:inline">Added</span><span class="font-medium text-sm ml-2 sm:hidden">Added</span>';
+            watchLaterBtn.classList.add('text-yellow-600', 'bg-yellow-50', 'border-yellow-200');
+        } else {
+            watchLaterBtn.innerHTML = '<i class="far fa-clock text-sm"></i><span class="font-medium text-sm ml-2 hidden sm:inline">Watch Later</span><span class="font-medium text-sm ml-2 sm:hidden">Later</span>';
+            watchLaterBtn.classList.remove('text-yellow-600', 'bg-yellow-50', 'border-yellow-200');
+        }
     }
 }
+function updateWatchLaterUI() {
+    if (watchLaterBtn) {
+        if (hasWatchLater) {
+            watchLaterBtn.innerHTML = '<i class="fas fa-clock text-yellow-500"></i><span class="font-medium ml-2">Added</span>';
+            watchLaterBtn.classList.add('text-yellow-600', 'bg-yellow-50', 'border-yellow-200');
+        } else {
+            watchLaterBtn.innerHTML = '<i class="far fa-clock"></i><span class="font-medium ml-2">Watch Later</span>';
+            watchLaterBtn.classList.remove('text-yellow-600', 'bg-yellow-50', 'border-yellow-200');
+        }
+    }
+}
+
+function showLoginPrompt(action) {
+    if (confirm(`Please log in to ${action}. Would you like to go to the login page?`)) {
+        window.location.href = 'login.html';
+    }
+}
+
+async function handleAddToPlaylist(playlistId) {
+    const token = localStorage.getItem('token');
+    if (!token || !currentVideoId) {
+        alert('Please log in to add to playlist');
+        return;
+    }
+
+    try {
+        console.log('🔄 Adding video to playlist:', { playlistId, videoId: currentVideoId });
+        
+        const response = await fetch(`/api/playlists/${playlistId}/videos/${currentVideoId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const textResponse = await response.text();
+            console.error('❌ Server returned non-JSON response:', textResponse.substring(0, 200));
+            throw new Error('Server error - please try again later');
+        }
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert('Video added to playlist!');
+            closePlaylistDropdown();
+        } else {
+            console.error('❌ API error response:', data);
+            alert(data.message || 'Error adding to playlist');
+        }
+    } catch (error) {
+        console.error('❌ Error adding to playlist:', error);
+        
+        // Fallback to localStorage
+        if (error.message.includes('JSON') || error.message.includes('Server error')) {
+            console.log('🔄 Using localStorage fallback for playlist');
+            addToPlaylistLocalStorage(playlistId);
+        } else {
+            alert('Error adding to playlist: ' + error.message);
+        }
+    }
+}
+
+// Add to playlist using localStorage fallback
+function addToPlaylistLocalStorage(playlistId) {
+    try {
+        const localPlaylists = JSON.parse(localStorage.getItem('localPlaylists') || '[]');
+        const playlistIndex = localPlaylists.findIndex(p => p._id === playlistId);
+        
+        if (playlistIndex === -1) {
+            alert('Playlist not found in local storage');
+            return;
+        }
+        
+        const playlist = localPlaylists[playlistIndex];
+        
+        if (!playlist.videos) {
+            playlist.videos = [];
+        }
+        
+        // Check if video is already in playlist
+        const videoExists = playlist.videos.some(v => v._id === currentVideoId);
+        
+        if (videoExists) {
+            alert('Video is already in this playlist!');
+            return;
+        }
+        
+        // Get current video information
+        const videoTitle = document.getElementById('videoTitle')?.textContent || 'Unknown Video';
+        const videoThumbnail = document.querySelector('#videoPlayer')?.poster || '';
+        const videoCategory = document.getElementById('videoCategory')?.textContent || 'unknown';
+        
+        // Create a complete video object for storage
+        const videoToAdd = {
+            _id: currentVideoId,
+            title: videoTitle,
+            thumbnail: videoThumbnail,
+            duration: 0,
+            category: videoCategory,
+            addedAt: new Date().toISOString()
+        };
+        
+        // Add video to playlist
+        playlist.videos.push(videoToAdd);
+        playlist.updatedAt = new Date().toISOString();
+        
+        // Update the playlist in the array
+        localPlaylists[playlistIndex] = playlist;
+        
+        // Save back to localStorage
+        localStorage.setItem('localPlaylists', JSON.stringify(localPlaylists));
+        
+        alert(`✅ Video added to playlist! (Saved locally)\nNow has ${playlist.videos.length} video${playlist.videos.length !== 1 ? 's' : ''}`);
+        closePlaylistDropdown();
+        
+    } catch (error) {
+        console.error('❌ Error with localStorage fallback:', error);
+        alert('Error saving to playlist locally: ' + error.message);
+    }
+}
+
+async function loadUserPlaylists() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+        const response = await fetch('/api/playlists/user', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            userPlaylists = data.playlists || [];
+            updatePlaylistDropdown();
+        }
+    } catch (error) {
+        console.error('Error loading playlists:', error);
+    }
+}
+
+function updatePlaylistDropdown() {
+    if (!playlistList) return;
+
+    const localPlaylists = JSON.parse(localStorage.getItem('localPlaylists') || '[]');
+    const availablePlaylists = userPlaylists.length > 0 ? userPlaylists : localPlaylists;
+
+    if (availablePlaylists.length === 0) {
+        playlistList.innerHTML = `
+            <div class="px-4 py-3 text-sm text-gray-500 text-center">
+                No playlists yet
+            </div>
+        `;
+        return;
+    }
+
+    playlistList.innerHTML = availablePlaylists.map(playlist => `
+        <div class="playlist-item px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center justify-between" 
+             onclick="handleAddToPlaylist('${playlist._id}')">
+            <div>
+                <div class="text-sm font-medium">${playlist.name}</div>
+                <div class="text-xs text-gray-500">${playlist.videos ? playlist.videos.length : 0} videos</div>
+            </div>
+            <i class="fas fa-plus text-gray-400"></i>
+        </div>
+    `).join('');
+}
+
+function togglePlaylistDropdown() {
+    if (!playlistDropdown) return;
+
+    if (playlistDropdown.classList.contains('hidden')) {
+        playlistDropdown.classList.remove('hidden');
+        loadUserPlaylists();
+    } else {
+        playlistDropdown.classList.add('hidden');
+    }
+}
+
+function closePlaylistDropdown() {
+    if (playlistDropdown) {
+        playlistDropdown.classList.add('hidden');
+    }
+}
+
+async function createNewPlaylist() {
+    const playlistName = prompt('Enter playlist name:');
+    if (!playlistName) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Please log in to create playlists');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/playlists', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: playlistName,
+                description: '',
+                isPublic: false
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            userPlaylists.push(data.playlist);
+            updatePlaylistDropdown();
+            // Automatically add current video to the new playlist
+            await handleAddToPlaylist(data.playlist._id);
+        } else {
+            alert('Error creating playlist');
+        }
+    } catch (error) {
+        console.error('Error creating playlist:', error);
+    }
+}
+
+// ==================== VIDEO PLAYER FUNCTIONS ====================
 
 // Load video data
 async function loadVideo(videoId) {
     console.log('🔄 Loading video data for:', videoId);
+    
+    // Setup event listeners first
+    setupEventListeners();
+    
     try {
         const response = await fetch(`/api/videos/${videoId}`);
         console.log('API Response status:', response.status);
@@ -344,7 +474,6 @@ async function loadVideo(videoId) {
         
         if (video) {
             displayVideo(video);
-            // REMOVE THIS LINE if it exists: loadRelatedVideos(videoId, video.category);
         } else {
             showVideoError();
         }
@@ -353,11 +482,15 @@ async function loadVideo(videoId) {
         showVideoError();
     }
 }
+
 function displayVideo(video) {
     console.log('🎬 Displaying video:', video.title);
     
     // Set current video ID for like functionality
     currentVideoId = video._id;
+    
+    // Check user's interaction state
+    checkUserInteractionState(video._id);
     
     // Reset related videos pagination
     relatedVideosPage = 1;
@@ -383,7 +516,7 @@ function displayVideo(video) {
         });
     }
     
-    // Setup video player with quality detection
+    // Setup video player
     setupVideoPlayer(video);
     
     // Display tags if available
@@ -398,46 +531,35 @@ function displayVideo(video) {
         videoTags.classList.remove('hidden');
     }
     
-    // Load related videos - UPDATED CALL
+    // Load related videos
     loadRelatedVideos(video._id, video.category, 1, false);
     
     // Update page title
     document.title = `${video.title || 'Video'} - SabSrul`;
-     // Scroll to top for better UX
+    
+    // Scroll to top for better UX
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
-    // Update browser history for clean back navigation
-    window.history.replaceState({}, '', `video.html?id=${video.shortId}`);
-    
     console.log('✅ Video displayed successfully');
-
 }
 
 function setupVideoPlayer(video) {
     const videoPlayer = document.getElementById('videoPlayer');
     
     console.log('🎥 Setting up video player with URL:', video.videoUrl);
-    console.log('📊 Available video qualities:', video.qualities);
     
     if (!videoPlayer) {
         console.error('❌ Video player element not found!');
         return;
     }
     
-    // Clear any existing content
+    // Clear any existing content and reset
     videoPlayer.innerHTML = '';
     
-    // Detect available qualities
-    detectAvailableQualities(video);
+    // Set src directly
+    videoPlayer.src = video.videoUrl;
     
-    // Add the main video source
-    const mainSource = document.createElement('source');
-    mainSource.src = video.videoUrl;
-    mainSource.type = 'video/mp4';
-    mainSource.setAttribute('data-quality', 'auto');
-    videoPlayer.appendChild(mainSource);
-    
-    console.log('✅ Added main video source:', video.videoUrl);
+    console.log('✅ Set video source directly:', video.videoUrl);
     
     // Set poster (thumbnail)
     if (video.thumbnail && video.thumbnail.startsWith('http')) {
@@ -453,9 +575,6 @@ function setupVideoPlayer(video) {
     videoPlayer.preload = 'auto';
     videoPlayer.playsInline = true;
     
-    // Setup YouTube-style settings controls
-    setupSettingsControls();
-    
     // Auto-increment views when video starts playing
     videoPlayer.addEventListener('play', function() {
         incrementViews(video._id);
@@ -463,308 +582,25 @@ function setupVideoPlayer(video) {
     
     // Listen for video events
     videoPlayer.addEventListener('loadeddata', function() {
-        console.log('✅ Video data loaded, ready state:', videoPlayer.readyState);
-        console.log('📺 Video dimensions:', videoPlayer.videoWidth, 'x', videoPlayer.videoHeight);
-    });
-    
-    videoPlayer.addEventListener('canplay', function() {
-        console.log('🎬 Video can start playing');
+        console.log('✅ Video data loaded successfully');
     });
     
     videoPlayer.addEventListener('error', function(e) {
         console.error('❌ Video player error:', e);
-        console.error('Video error details:', videoPlayer.error);
-        handleVideoError(video);
+        console.error('Video error code:', videoPlayer.error?.code);
+        console.error('Video error message:', videoPlayer.error?.message);
+        
+        // Try alternative approach - reload the video
+        if (video.videoUrl) {
+            console.log('🔄 Trying to reload video');
+            videoPlayer.load();
+        }
     });
+    
+    // Load the video
+    videoPlayer.load();
     
     console.log('✅ Video player setup complete');
-}
-
-function detectAvailableQualities(video) {
-    availableQualities = [];
-    
-    console.log('🔍 Detecting available qualities from video data:', video);
-    
-    // Add auto quality first
-    availableQualities.push({
-        value: 'auto',
-        label: 'Auto',
-        description: 'Automatically adjust quality'
-    });
-    
-    // Detect from video qualities object (REAL qualities from database)
-    if (video.qualities) {
-        // Sort qualities from highest to lowest
-        Object.entries(video.qualities)
-            .sort(([a], [b]) => parseInt(b) - parseInt(a))
-            .forEach(([quality, url]) => {
-                if (url && url.startsWith('http')) {
-                    availableQualities.push({
-                        value: quality,
-                        label: `${quality}p`,
-                        description: `${quality}p - ${getQualityDescription(quality)}`,
-                        url: url
-                    });
-                    console.log(`✅ Found quality: ${quality}p`);
-                }
-            });
-    }
-    
-    // If no specific qualities found, check if we can determine from main URL
-    if (availableQualities.length === 1 && video.videoUrl) {
-        console.log('⚠️ No specific qualities found, analyzing main URL');
-        // Add the main URL as a quality option
-        availableQualities.push({
-            value: 'source',
-            label: 'Source',
-            description: 'Original video quality',
-            url: video.videoUrl
-        });
-    }
-    
-    console.log('📊 Final available qualities:', availableQualities);
-}
-
-function handleVideoError(video) {
-    console.error('🚨 Video playback failed, trying fallback strategies');
-    
-    // Strategy 1: Try the main video URL directly
-    const videoPlayer = document.getElementById('videoPlayer');
-    if (video.videoUrl && videoPlayer.src !== video.videoUrl) {
-        console.log('🔄 Trying main video URL as fallback:', video.videoUrl);
-        videoPlayer.src = video.videoUrl;
-        return;
-    }
-    
-    // Strategy 2: Show error to user
-    console.error('❌ All video sources failed');
-    alert('Video playback failed. Please try again or check your internet connection.');
-}
-
-function getQualityDescription(quality) {
-    const descriptions = {
-        '240': 'Low quality',
-        '360': 'Basic quality', 
-        '480': 'Standard definition',
-        '720': 'High definition',
-        '1080': 'Full HD',
-        '1440': '2K QHD',
-        '2160': '4K UHD'
-    };
-    return descriptions[quality] || 'Video quality';
-}
-
-function setupSettingsControls() {
-    if (!settingsButton) return;
-    
-    // Always show settings button (for quality options)
-    settingsButton.classList.remove('hidden');
-    
-    // Populate quality options
-    updateQualityOptions();
-}
-
-function updateQualityOptions() {
-    if (!qualityOptions) return;
-    
-    qualityOptions.innerHTML = availableQualities.map(quality => `
-        <div class="settings-option px-3 py-2.5 hover:bg-gray-700 cursor-pointer transition-colors flex justify-between items-center ${
-            quality.value === currentQuality ? 'bg-purple-600 hover:bg-purple-700' : ''
-        }" 
-             onclick="switchVideoQuality('${quality.value}')"
-             data-quality="${quality.value}">
-            <div>
-                <div class="text-sm">${quality.label}</div>
-                ${quality.description ? `<div class="text-xs text-gray-400 mt-0.5">${quality.description}</div>` : ''}
-            </div>
-            ${quality.value === currentQuality ? 
-                '<i class="fas fa-check text-purple-400 ml-2 text-xs"></i>' : 
-                ''
-            }
-        </div>
-    `).join('');
-}
-
-function toggleSettingsMenu() {
-    if (!settingsMenu) return;
-    
-    if (isSettingsMenuOpen) {
-        closeSettingsMenu();
-    } else {
-        openSettingsMenu();
-    }
-}
-
-function openSettingsMenu() {
-    if (settingsMenu) {
-        // Close categories menu when settings open
-        const desktopCategoriesMenu = document.getElementById('desktopCategoriesMenu');
-        if (desktopCategoriesMenu) {
-            desktopCategoriesMenu.classList.add('hidden');
-        }
-        
-        settingsMenu.classList.remove('hidden');
-        isSettingsMenuOpen = true;
-        
-        // Update menu content
-        updateQualityOptions();
-    }
-}
-
-function closeSettingsMenu() {
-    if (settingsMenu) {
-        settingsMenu.classList.add('hidden');
-        isSettingsMenuOpen = false;
-    }
-}
-
-function switchVideoQuality(quality) {
-    const videoPlayer = document.getElementById('videoPlayer');
-    
-    if (!videoPlayer || !availableQualities.find(q => q.value === quality)) {
-        console.warn('⚠️ Quality not available:', quality);
-        return;
-    }
-    
-    console.log('🔄 Switching to quality:', quality);
-    
-    const currentTime = videoPlayer.currentTime;
-    const wasPlaying = !videoPlayer.paused;
-    const playbackRate = videoPlayer.playbackRate;
-    
-    if (quality === 'auto') {
-        // For auto quality, let the browser decide from available sources
-        videoPlayer.src = '';
-        videoPlayer.load();
-    } else {
-        // Find the quality object
-        const qualityObj = availableQualities.find(q => q.value === quality);
-        if (qualityObj && qualityObj.url) {
-            videoPlayer.src = qualityObj.url;
-        } else {
-            console.warn('❌ Quality URL not found:', quality);
-            return;
-        }
-    }
-    
-    // Update current quality
-    currentQuality = quality;
-    
-    // Restore playback state
-    videoPlayer.currentTime = currentTime;
-    videoPlayer.playbackRate = playbackRate;
-    
-    if (wasPlaying) {
-        videoPlayer.play().catch(error => {
-            console.warn('⚠️ Auto-play prevented:', error);
-        });
-    }
-    
-    // Show quality change notification
-    showQualityNotification(quality);
-    
-    // Close settings menu
-    closeSettingsMenu();
-    
-    console.log('✅ Quality switched to:', quality);
-}
-
-function showQualityNotification(quality) {
-    // Create or update notification element
-    let notification = document.getElementById('qualityChangeNotification');
-    
-    if (!notification) {
-        notification = document.createElement('div');
-        notification.id = 'qualityChangeNotification';
-        notification.className = 'absolute top-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-80 text-white px-4 py-2 rounded-lg text-sm font-medium z-50';
-        document.getElementById('videoPlayer').parentElement.appendChild(notification);
-    }
-    
-    const qualityObj = availableQualities.find(q => q.value === quality);
-    notification.textContent = `Quality: ${qualityObj ? qualityObj.label : 'Auto'}`;
-    notification.classList.remove('hidden');
-    
-    // Hide after 2 seconds
-    setTimeout(() => {
-        notification.classList.add('hidden');
-    }, 2000);
-}
-
-// Format category name (capitalize, remove dashes)
-function formatCategoryName(category) {
-    if (!category) return 'Uncategorized';
-    return category.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-}
-
-// Filter by tag
-function filterByTag(tag) {
-    console.log(`🏷️ Filtering by tag: ${tag}`);
-    
-    // Update search input if it exists
-    const searchInput = document.getElementById('searchInput');
-    const clearSearchBtn = document.getElementById('clearSearchBtn');
-    
-    if (searchInput) {
-        searchInput.value = tag;
-    }
-    if (clearSearchBtn) {
-        clearSearchBtn.classList.remove('hidden');
-    }
-    
-    // Navigate to index with tag filter
-    window.location.href = `index.html?tag=${encodeURIComponent(tag)}`;
-}
-
-// Handle like button
-async function handleLike() {
-    if (!currentVideoId || hasLiked) return;
-    
-    try {
-        const response = await fetch(`/api/videos/${currentVideoId}/like`, {
-            method: 'POST'
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            const currentLikes = parseInt(likeCount.textContent) || 0;
-            if (likeCount) likeCount.textContent = formatLikes(currentLikes + 1);
-            
-            // Visual feedback
-            hasLiked = true;
-            if (likeBtn) {
-                likeBtn.innerHTML = '<i class="fas fa-heart text-red-500"></i><span class="font-medium ml-2">' + formatLikes(currentLikes + 1) + '</span>';
-                likeBtn.classList.add('text-red-400', 'bg-red-500/20', 'border-red-500/30');
-            }
-        }
-    } catch (error) {
-        console.error('Error liking video:', error);
-    }
-}
-
-// Handle share button
-function handleShare() {
-    const videoUrl = window.location.href;
-    if (navigator.share) {
-        navigator.share({
-            title: videoTitle ? videoTitle.textContent : 'Video',
-            text: videoDescription ? videoDescription.textContent : '',
-            url: videoUrl,
-        })
-        .then(() => console.log('Successful share'))
-        .catch((error) => console.log('Error sharing:', error));
-    } else {
-        // Fallback: copy to clipboard
-        navigator.clipboard.writeText(videoUrl).then(() => {
-            // Show temporary feedback
-            const originalText = shareBtn.innerHTML;
-            shareBtn.innerHTML = '<i class="fas fa-check"></i><span class="font-medium ml-2">Copied!</span>';
-            shareBtn.classList.add('text-green-400', 'bg-green-500/20');
-            setTimeout(() => {
-                shareBtn.innerHTML = originalText;
-                shareBtn.classList.remove('text-green-400', 'bg-green-500/20');
-            }, 2000);
-        });
-    }
 }
 
 // Add function to increment views
@@ -778,31 +614,20 @@ async function incrementViews(videoId) {
     }
 }
 
-// Load related videos - WITH 16 VIDEOS LIMIT AND LOAD MORE
+// ==================== RELATED VIDEOS FUNCTIONALITY ====================
+
+// Load related videos
 async function loadRelatedVideos(videoId, category, page = 1, append = false) {
     console.log('🔄 Loading related videos...', { category, page, append });
     
     try {
         if (!append) {
-            // Show loading only on first load
             if (relatedLoading) relatedLoading.classList.remove('hidden');
             if (relatedVideos) relatedVideos.innerHTML = '';
             if (noRelatedVideos) noRelatedVideos.classList.add('hidden');
             if (relatedLoadMore) relatedLoadMore.classList.add('hidden');
         }
         
-        // Get current video data to find tags for better relevance
-        const currentVideoResponse = await fetch(`/api/videos/${videoId}`);
-        const currentVideo = await currentVideoResponse.json();
-        const currentTags = currentVideo.tags || [];
-        
-        console.log('🏷️ Current video tags for relevance:', currentTags);
-        
-        let relevantVideos = [];
-        let categoryVideos = [];
-        let hasMoreFromCategory = false;
-        
-        // LOAD 16 VIDEOS INITIALLY, 18 ON SUBSEQUENT PAGES
         const limit = page === 1 ? 16 : 18;
         const categoryResponse = await fetch(`/api/videos?category=${category}&page=${page}&limit=${limit}`);
         
@@ -811,62 +636,17 @@ async function loadRelatedVideos(videoId, category, page = 1, append = false) {
         }
         
         const categoryData = await categoryResponse.json();
-        categoryVideos = categoryData.videos || [];
+        const categoryVideos = categoryData.videos || [];
         
-        // Calculate if we have more videos (show load more if total > 16)
+        // Calculate if we have more videos
         const totalVideosInCategory = categoryData.totalCount || 0;
         hasMoreFromCategory = categoryData.hasMore || categoryData.totalPages > page || 
                              (page === 1 && totalVideosInCategory > 16);
         
-        console.log('📹 Category videos loaded:', categoryVideos.length, 'Has more:', hasMoreFromCategory, 'Limit:', limit, 'Total in category:', totalVideosInCategory);
+        console.log('📹 Category videos loaded:', categoryVideos.length, 'Has more:', hasMoreFromCategory);
         
-        // Try to get videos with same tags first (more relevant) - ONLY ON FIRST PAGE
-        if (currentTags.length > 0 && page === 1) {
-            try {
-                const tagPromises = currentTags.map(tag => 
-                    fetch(`/api/videos/search/videos?q=${encodeURIComponent(tag)}&limit=5`)
-                        .then(res => res.json())
-                        .then(data => data.videos || [])
-                        .catch(err => [])
-                );
-                
-                const tagResults = await Promise.all(tagPromises);
-                relevantVideos = tagResults.flat();
-                
-                // Remove duplicates and current video
-                relevantVideos = relevantVideos.filter((video, index, self) => 
-                    video._id !== videoId && 
-                    self.findIndex(v => v._id === video._id) === index
-                );
-                
-                console.log('🎯 Found relevant videos by tags:', relevantVideos.length);
-            } catch (tagError) {
-                console.log('⚠️ Tag-based search failed, using category only');
-            }
-        }
-        
-        // Combine videos: tag-relevant first (only on page 1), then category videos
-        let allVideos = [];
-        
-        if (page === 1) {
-            // On first page: tag-relevant videos first
-            allVideos = [...relevantVideos];
-            
-            // Add category videos that aren't already in the list, up to 16 total
-            for (let video of categoryVideos) {
-                if (video._id !== videoId && !allVideos.find(v => v._id === video._id)) {
-                    allVideos.push(video);
-                    // Stop at 16 videos for first page
-                    if (allVideos.length >= 16) break;
-                }
-            }
-        } else {
-            // On subsequent pages: only category videos
-            allVideos = categoryVideos.filter(video => video._id !== videoId);
-        }
-        
-        // Remove current video if it slipped through
-        allVideos = allVideos.filter(video => video._id !== videoId);
+        // Remove current video and filter
+        let allVideos = categoryVideos.filter(video => video._id !== videoId);
         
         console.log('🎯 Final related videos:', allVideos.length, 'Has more:', hasMoreFromCategory);
         
@@ -909,7 +689,7 @@ async function loadRelatedVideos(videoId, category, page = 1, append = false) {
     }
 }
 
-        // Display related videos - EXACT INDEX PAGE STYLING
+// Display related videos
 function displayRelatedVideos(videos, append = false) {
     console.log('📹 Displaying related videos:', videos.length, 'Append:', append);
     if (!relatedVideos) return;
@@ -950,6 +730,77 @@ async function loadMoreRelatedVideos() {
     relatedVideosPage++;
     await loadRelatedVideos(currentVideoId, currentRelatedCategory, relatedVideosPage, true);
 }
+
+// Add this function to check user's interaction state
+async function checkUserInteractionState(videoId) {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+        // Check localStorage first for fallback data
+        const userLikes = JSON.parse(localStorage.getItem('userLikes') || '{}');
+        const userWatchLater = JSON.parse(localStorage.getItem('userWatchLater') || '{}');
+        
+        hasLiked = userLikes[videoId] || false;
+        hasWatchLater = userWatchLater[videoId] || false;
+        
+        // Try to get real data from server
+        const response = await fetch(`/api/interactions/user/interactions`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('🔍 User interactions data:', data);
+            
+            // Update with real data if available
+            if (data.likedVideos && Array.isArray(data.likedVideos)) {
+                hasLiked = data.likedVideos.some(video => video._id === videoId || video === videoId);
+            }
+            
+            if (data.watchLater && Array.isArray(data.watchLater)) {
+                hasWatchLater = data.watchLater.some(video => video._id === videoId || video === videoId);
+            }
+        } else {
+            console.log('⚠️ Could not fetch user interactions, using localStorage data');
+        }
+        
+        // Update UI
+        updateInteractionUI();
+        
+    } catch (error) {
+        console.error('Error checking user interaction:', error);
+        updateInteractionUI();
+    }
+}
+
+function updateInteractionUI() {
+    // Update like button
+    if (likeBtn) {
+        if (hasLiked) {
+            likeBtn.innerHTML = '<i class="fas fa-heart text-red-500 text-sm"></i><span class="font-medium text-sm ml-2">' + (window.innerWidth < 640 ? 'Liked' : likeCount.textContent) + '</span>';
+            likeBtn.classList.add('text-red-600', 'bg-red-50', 'border-red-200');
+        } else {
+            likeBtn.innerHTML = '<i class="far fa-heart text-sm"></i><span class="font-medium text-sm ml-2 hidden sm:inline">Like</span><span class="font-medium text-sm ml-2 sm:hidden">Like</span>';
+            likeBtn.classList.remove('text-red-600', 'bg-red-50', 'border-red-200');
+        }
+    }
+
+    // Update watch later button
+    if (watchLaterBtn) {
+        if (hasWatchLater) {
+            watchLaterBtn.innerHTML = '<i class="fas fa-clock text-yellow-500 text-sm"></i><span class="font-medium text-sm ml-2 hidden sm:inline">Added</span><span class="font-medium text-sm ml-2 sm:hidden">Added</span>';
+            watchLaterBtn.classList.add('text-yellow-600', 'bg-yellow-50', 'border-yellow-200');
+        } else {
+            watchLaterBtn.innerHTML = '<i class="far fa-clock text-sm"></i><span class="font-medium text-sm ml-2 hidden sm:inline">Watch Later</span><span class="font-medium text-sm ml-2 sm:hidden">Later</span>';
+            watchLaterBtn.classList.remove('text-yellow-600', 'bg-yellow-50', 'border-yellow-200');
+        }
+    }
+}
+
+// ==================== SEARCH FUNCTIONALITY ====================
 
 // Search functionality for video page
 function setupVideoSearch() {
@@ -1012,6 +863,8 @@ function clearVideoSearch() {
     }
 }
 
+// ==================== UTILITY FUNCTIONS ====================
+
 // Show video error state
 function showVideoError() {
     console.log('❌ Showing video error');
@@ -1023,18 +876,7 @@ function showVideoError() {
 }
 
 // Utility functions
-function formatViews(views) {
-    if (!views && views !== 0) return '0';
-    if (views >= 1000000) {
-        return (views / 1000000).toFixed(1) + 'M';
-    } else if (views >= 1000) {
-        return (views / 1000).toFixed(1) + 'K';
-    }
-    return views.toString();
-}
-// Utility functions
 function formatDuration(seconds) {
-    // Handle undefined, null, or 0 duration
     if (!seconds || seconds === 0) {
         return '0:00';
     }
@@ -1075,7 +917,6 @@ function formatTimeAgo(dateString) {
         if (diffDays === 0) return 'Today';
         if (diffDays === 1) return 'Yesterday';
         if (diffDays < 7) return `${diffDays} days ago`;
-        if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
         if (diffMonths < 12) return `${diffMonths} months ago`;
         return `${Math.floor(diffMonths / 12)} years ago`;
     } catch (error) {
@@ -1083,53 +924,97 @@ function formatTimeAgo(dateString) {
         return 'Recently';
     }
 }
-function formatLikes(likes) {
-    if (!likes && likes !== 0) return '0';
-    if (likes >= 1000) {
-        return (likes / 1000).toFixed(1) + 'K';
-    }
-    return likes.toString();
-}
 
-function formatTimeAgo(dateString) {
-    if (!dateString) return 'Recently';
+// Format category name for display
+function formatCategoryName(category) {
+    if (!category) return 'Uncategorized';
     
-    try {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffMs = now - date;
-        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        const diffMonths = Math.floor(diffDays / 30);
-        
-        if (diffDays === 0) return 'Today';
-        if (diffDays === 1) return 'Yesterday';
-        if (diffDays < 7) return `${diffDays} days ago`;
-        if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-        if (diffMonths < 12) return `${diffMonths} months ago`;
-        return `${Math.floor(diffMonths / 12)} years ago`;
-    } catch (error) {
-        console.error('Error formatting date:', error);
-        return 'Recently';
+    // If category is an object with name property
+    if (typeof category === 'object' && category.name) {
+        return category.name.charAt(0).toUpperCase() + category.name.slice(1);
+    }
+    
+    // If category is a string
+    if (typeof category === 'string') {
+        return category.charAt(0).toUpperCase() + category.slice(1);
+    }
+    
+    return 'Uncategorized';
+}
+
+function handleShare() {
+    const videoUrl = window.location.href;
+    if (navigator.share) {
+        navigator.share({
+            title: videoTitle ? videoTitle.textContent : 'Video',
+            text: '',
+            url: videoUrl,
+        })
+        .then(() => console.log('Successful share'))
+        .catch((error) => console.log('Error sharing:', error));
+    } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(videoUrl).then(() => {
+            // Show temporary feedback
+            const originalText = shareBtn.innerHTML;
+            shareBtn.innerHTML = '<i class="fas fa-check"></i><span class="font-medium ml-2">Copied!</span>';
+            shareBtn.classList.add('text-green-400', 'bg-green-500/20');
+            setTimeout(() => {
+                shareBtn.innerHTML = originalText;
+                shareBtn.classList.remove('text-green-400', 'bg-green-500/20');
+            }, 2000);
+        });
     }
 }
-// In video.js - track watch time
-let watchStartTime = Date.now();
 
-videoPlayer.addEventListener('play', function() {
-    watchStartTime = Date.now();
-});
-
-videoPlayer.addEventListener('pause', function() {
-    const watchTime = Math.round((Date.now() - watchStartTime) / 1000);
-    console.log(`User watched ${watchTime} seconds`);
-    // Send to analytics
-});
+// ==================== GLOBAL FUNCTIONS ====================
 
 // Make functions globally available
 window.filterByTag = filterByTag;
-window.toggleSettingsMenu = toggleSettingsMenu;
-window.switchVideoQuality = switchVideoQuality;
-window.loadMoreRelatedVideos = loadMoreRelatedVideos; // ADD THIS LINE
+window.loadMoreRelatedVideos = loadMoreRelatedVideos;
 window.loadVideosByCategory = function(category) {
     window.location.href = `index.html?category=${category}`;
 };
+window.handleAddToPlaylist = handleAddToPlaylist;
+window.togglePlaylistDropdown = togglePlaylistDropdown;
+window.closePlaylistDropdown = closePlaylistDropdown;
+window.createNewPlaylist = createNewPlaylist;
+window.navigateToVideo = navigateToVideo;
+window.loadVideo = loadVideo; // Make loadVideo globally available
+
+function filterByTag(tag) {
+    console.log(`🏷️ Filtering by tag: ${tag}`);
+    
+    // Update search input if it exists
+    const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    
+    if (searchInput) {
+        searchInput.value = tag;
+    }
+    if (clearSearchBtn) {
+        clearSearchBtn.classList.remove('hidden');
+    }
+    
+    // Navigate to index with tag filter
+    window.location.href = `index.html?tag=${encodeURIComponent(tag)}`;
+}
+
+// Quick fix for related videos click
+document.addEventListener('click', function(e) {
+    const videoCard = e.target.closest('.video-card');
+    if (videoCard && videoCard.hasAttribute('data-video-id')) {
+        const videoId = videoCard.getAttribute('data-video-id');
+        window.location.href = `/video.html?id=${videoId}`;
+    }
+});
+
+// Handle responsive text changes on window resize
+window.addEventListener('resize', function() {
+    updateInteractionUI();
+});
+
+// Also call it once on page load
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(updateInteractionUI, 100);
+});

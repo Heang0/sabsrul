@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service & Privacy Policy - SabSrul</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .section-active { display: block; }
+        .section-hidden { display: none; }
+        .tab-active {
+            background: linear-gradient(to right, #7c3aed, #6d28d9);
+            color: white;
+        }
+        .content-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .content-section.open { max-height: 2000px; }
+        .warning-badge {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">S</span>
+                        </div>
+                        <span class="text-xl font-bold text-gray-900">SabSrul</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="login.html" class="text-gray-600 hover:text-gray-900 transition duration-200">Login</a>
+                    <a href="register.html" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition duration-200">Sign Up</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <!-- Age Verification Banner -->
+        <div class="warning-badge rounded-xl p-6 mb-8 text-center">
+            <div class="flex items-center justify-center mb-3">
+                <i class="fas fa-exclamation-triangle text-2xl mr-3"></i>
+                <h2 class="text-2xl font-bold">ADULT CONTENT WARNING</h2>
+            </div>
+            <p class="text-lg font-semibold">
+                THIS WEBSITE CONTAINS EXPLICIT ADULT CONTENT AND IS RESTRICTED TO USERS 18 YEARS OF AGE OR OLDER
+            </p>
+            <p class="mt-2 text-red-100">
+                By accessing this website, you confirm that you are at least 18 years old and agree to our terms
+            </p>
+        </div>
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Terms of Service & Privacy Policy</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                Legal agreements for SabSrul adult video platform
+            </p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-8">
+            <button id="termsTab" class="tab-active flex-1 py-3 px-4 rounded-md text-sm font-medium transition duration-200">
+                Terms of Service
+            </button>
+            <button id="privacyTab" class="flex-1 py-3 px-4 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 transition duration-200">
+                Privacy Policy
+            </button>
+        </div>
+
+        <!-- Terms of Service Content -->
+        <div id="termsContent" class="section-active bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
+            <div class="prose prose-purple max-w-none">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Terms of Service for Adult Content Platform</h2>
+                <p class="text-gray-600 mb-6"><strong>Last Updated:</strong> December 2024</p>
+
+                <!-- Age Verification -->
+                <div class="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <h3 class="text-lg font-semibold text-red-800 mb-2">🔞 Age Verification Requirement</h3>
+                    <p class="text-red-700">
+                        You must be at least 18 years old (or the age of majority in your jurisdiction) to access this platform. 
+                        By creating an account or accessing any content, you legally affirm that you meet these age requirements.
+                    </p>
+                </div>
+
+                <!-- Content Guidelines -->
+                <div class="mb-8">
+                    <button class="flex items-center justify-between w-full text-left mb-4" onclick="toggleSection('contentGuidelines')">
+                        <h3 class="text-xl font-semibold text-gray-900">1. Adult Content Guidelines</h3>
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </button>
+                    <div id="contentGuidelines" class="content-section open">
+                        <p class="text-gray-600 mb-4">Permitted content includes consensual adult entertainment. Strictly prohibited content includes:</p>
+                        <ul class="list-disc list-inside text-gray-600 space-y-2 mb-4">
+                            <li><strong>Non-consensual material</strong> or content depicting non-consenting individuals</li>
+                            <li><strong>Minors or underage content</strong> - Zero tolerance policy</li>
+                            <li><strong>Non-consensual intimate imagery</strong> or revenge porn</li>
+                            <li><strong>Violent, abusive, or harmful content</strong></li>
+                            <li><strong>Content involving animals</strong></li>
+                            <li><strong>Content depicting illegal activities</strong></li>
+                            <li><strong>Content that violates copyright laws</strong></li>
+                        </ul>
+                        <p class="text-gray-600 font-semibold">
+                            Violations will result in immediate account termination and may be reported to law enforcement.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- User Conduct -->
+                <div class="mb-8">
+                    <button class="flex items-center justify-between w-full text-left mb-4" onclick="toggleSection('userConduct')">
+                        <h3 class="text-xl font-semibold text-gray-900">2. User Conduct & Responsibilities</h3>
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </button>
+                    <div id="userConduct" class="content-section">
+                        <ul class="list-disc list-inside text-gray-600 space-y-2 mb-4">
+                            <li>You are solely responsible for the content you upload and share</li>
+                            <li>All content must feature consenting adults who are 18+</li>
+                            <li>You must have proper documentation for all performers (model releases)</li>
+                            <li>Respect other users and do not engage in harassment</li>
+                            <li>Do not share personal information of other users</li>
+                            <li>Comply with all applicable laws in your jurisdiction</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Account Terms -->
+                <div class="mb-8">
+                    <button class="flex items-center justify-between w-full text-left mb-4" onclick="toggleSection('accountTerms')">
+                        <h3 class="text-xl font-semibold text-gray-900">3. Account Terms</h3>
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </button>
+                    <div id="accountTerms" class="content-section">
+                        <ul class="list-disc list-inside text-gray-600 space-y-2 mb-4">
+                            <li>One account per person unless explicitly authorized</li>
+                            <li>You must provide accurate age verification information</li>
+                            <li>We reserve the right to terminate accounts for violations</li>
+                            <li>You may delete your account and content at any time</li>
+                            <li>Chargebacks may result in permanent ban</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Legal Compliance -->
+                <div class="mb-8">
+                    <button class="flex items-center justify-between w-full text-left mb-4" onclick="toggleSection('legalCompliance')">
+                        <h3 class="text-xl font-semibold text-gray-900">4. Legal Compliance</h3>
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </button>
+                    <div id="legalCompliance" class="content-section">
+                        <p class="text-gray-600 mb-4">Users are responsible for complying with:</p>
+                        <ul class="list-disc list-inside text-gray-600 space-y-2 mb-4">
+                            <li>2257 Record Keeping Requirements (where applicable)</li>
+                            <li>Local age verification laws</li>
+                            <li>Copyright and intellectual property laws</li>
+                            <li>Privacy and data protection regulations</li>
+                            <li>Obscenity laws in your jurisdiction</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Privacy Policy Content -->
+        <div id="privacyContent" class="section-hidden bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
+            <div class="prose prose-purple max-w-none">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Privacy Policy</h2>
+                <p class="text-gray-600 mb-6"><strong>Last Updated:</strong> December 2024</p>
+
+                <div class="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h3 class="text-lg font-semibold text-blue-800 mb-2">🛡️ Privacy Commitment</h3>
+                    <p class="text-blue-700">
+                        We understand the sensitive nature of adult content consumption and are committed to protecting your privacy 
+                        and personal information.
+                    </p>
+                </div>
+
+                <!-- Data Collection -->
+                <div class="mb-8">
+                    <button class="flex items-center justify-between w-full text-left mb-4" onclick="toggleSection('dataCollection')">
+                        <h3 class="text-xl font-semibold text-gray-900">1. Information We Collect</h3>
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </button>
+                    <div id="dataCollection" class="content-section open">
+                        <p class="text-gray-600 mb-4">We collect minimal necessary information:</p>
+                        <ul class="list-disc list-inside text-gray-600 space-y-2 mb-4">
+                            <li><strong>Account Information:</strong> Email, username, age verification</li>
+                            <li><strong>Usage Data:</strong> Videos watched, preferences, interactions</li>
+                            <li><strong>Technical Data:</strong> IP address, browser type, device information</li>
+                            <li><strong>Content Data:</strong> Videos you upload, comments, playlists</li>
+                            <li><strong>Payment Data:</strong> Processed securely through third-party providers</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Data Usage -->
+                <div class="mb-8">
+                    <button class="flex items-center justify-between w-full text-left mb-4" onclick="toggleSection('dataUsage')">
+                        <h3 class="text-xl font-semibold text-gray-900">2. How We Use Your Information</h3>
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </button>
+                    <div id="dataUsage" class="content-section">
+                        <ul class="list-disc list-inside text-gray-600 space-y-2 mb-4">
+                            <li>Provide and personalize our services</li>
+                            <li>Verify your age and identity</li>
+                            <li>Process payments and prevent fraud</li>
+                            <li>Communicate important service updates</li>
+                            <li>Improve platform performance and features</li>
+                            <li>Comply with legal obligations</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Data Protection -->
+                <div class="mb-8">
+                    <button class="flex items-center justify-between w-full text-left mb-4" onclick="toggleSection('dataProtection')">
+                        <h3 class="text-xl font-semibold text-gray-900">3. Data Protection & Security</h3>
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </button>
+                    <div id="dataProtection" class="content-section">
+                        <ul class="list-disc list-inside text-gray-600 space-y-2 mb-4">
+                            <li>Encryption of sensitive data in transit and at rest</li>
+                            <li>Regular security audits and monitoring</li>
+                            <li>Limited employee access to user data</li>
+                            <li>Secure payment processing</li>
+                            <li>Regular data backups</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Data Sharing -->
+                <div class="mb-8">
+                    <button class="flex items-center justify-between w-full text-left mb-4" onclick="toggleSection('dataSharing')">
+                        <h3 class="text-xl font-semibold text-gray-900">4. Data Sharing</h3>
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </button>
+                    <div id="dataSharing" class="content-section">
+                        <p class="text-gray-600 mb-4">We do not sell your personal data. We may share information with:</p>
+                        <ul class="list-disc list-inside text-gray-600 space-y-2 mb-4">
+                            <li><strong>Service Providers:</strong> Payment processors, hosting services</li>
+                            <li><strong>Legal Authorities:</strong> When required by law or to protect rights</li>
+                            <li><strong>Business Transfers:</strong> In case of merger or acquisition</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Your Rights -->
+                <div class="mb-8">
+                    <button class="flex items-center justify-between w-full text-left mb-4" onclick="toggleSection('yourRights')">
+                        <h3 class="text-xl font-semibold text-gray-900">5. Your Rights</h3>
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </button>
+                    <div id="yourRights" class="content-section">
+                        <ul class="list-disc list-inside text-gray-600 space-y-2 mb-4">
+                            <li>Access and download your personal data</li>
+                            <li>Correct inaccurate information</li>
+                            <li>Delete your account and associated data</li>
+                            <li>Opt-out of marketing communications</li>
+                            <li>Export your content and data</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agreement Section -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mt-8">
+            <div class="text-center">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Agreement Confirmation</h3>
+                <p class="text-gray-600 mb-6">
+                    By using SabSrul, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service and Privacy Policy.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="register.html" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition duration-200 font-semibold">
+                        I Agree - Continue to Registration
+                    </a>
+                    <a href="index.html" class="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition duration-200 font-semibold">
+                        Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab functionality
+        document.getElementById('termsTab').addEventListener('click', function() {
+            switchToTerms();
+        });
+
+        document.getElementById('privacyTab').addEventListener('click', function() {
+            switchToPrivacy();
+        });
+
+        function switchToTerms() {
+            document.getElementById('termsTab').classList.add('tab-active');
+            document.getElementById('privacyTab').classList.remove('tab-active');
+            document.getElementById('termsContent').classList.add('section-active');
+            document.getElementById('termsContent').classList.remove('section-hidden');
+            document.getElementById('privacyContent').classList.add('section-hidden');
+            document.getElementById('privacyContent').classList.remove('section-active');
+        }
+
+        function switchToPrivacy() {
+            document.getElementById('privacyTab').classList.add('tab-active');
+            document.getElementById('termsTab').classList.remove('tab-active');
+            document.getElementById('privacyContent').classList.add('section-active');
+            document.getElementById('privacyContent').classList.remove('section-hidden');
+            document.getElementById('termsContent').classList.add('section-hidden');
+            document.getElementById('termsContent').classList.remove('section-active');
+        }
+
+        // Accordion functionality
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const isOpen = section.classList.contains('open');
+            
+            // Close all sections
+            document.querySelectorAll('.content-section').forEach(sec => {
+                sec.classList.remove('open');
+            });
+            
+            // Open clicked section if it was closed
+            if (!isOpen) {
+                section.classList.add('open');
+            }
+        }
+
+        // Open first sections by default
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('contentGuidelines').classList.add('open');
+            document.getElementById('dataCollection').classList.add('open');
+        });
+    </script>
+</body>
+</html>

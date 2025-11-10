@@ -13,6 +13,313 @@ const buttonText = document.getElementById('buttonText');
 const loadingSpinner = document.getElementById('loadingSpinner');
 const messageContainer = document.getElementById('messageContainer');
 
+// Combined User Authentication (Login & Register)
+document.addEventListener('DOMContentLoaded', function() {
+    // Elements
+    const loginTab = document.getElementById('loginTab');
+    const registerTab = document.getElementById('registerTab');
+    const loginFormContainer = document.getElementById('loginForm');
+    const registerFormContainer = document.getElementById('registerForm');
+    
+    // Login form elements
+    const userLoginForm = document.getElementById('userLoginForm');
+    const toggleLoginPassword = document.getElementById('toggleLoginPassword');
+    const loginPasswordInput = document.getElementById('loginPassword');
+    
+    // Register form elements
+    const userRegisterForm = document.getElementById('userRegisterForm');
+    const toggleRegisterPassword = document.getElementById('toggleRegisterPassword');
+    const registerPasswordInput = document.getElementById('registerPassword');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+
+    // Tab switching
+    if (loginTab && registerTab) {
+        loginTab.addEventListener('click', function() {
+            switchToLogin();
+        });
+
+        registerTab.addEventListener('click', function() {
+            switchToRegister();
+        });
+    }
+
+    function switchToLogin() {
+        loginTab.classList.add('tab-active');
+        registerTab.classList.remove('tab-active');
+        loginFormContainer.classList.add('active-form');
+        loginFormContainer.classList.remove('hidden-form');
+        registerFormContainer.classList.add('hidden-form');
+        registerFormContainer.classList.remove('active-form');
+    }
+
+    function switchToRegister() {
+        registerTab.classList.add('tab-active');
+        loginTab.classList.remove('tab-active');
+        registerFormContainer.classList.add('active-form');
+        registerFormContainer.classList.remove('hidden-form');
+        loginFormContainer.classList.add('hidden-form');
+        loginFormContainer.classList.remove('active-form');
+    }
+
+    // Toggle password visibility for login
+    if (toggleLoginPassword) {
+        toggleLoginPassword.addEventListener('click', function() {
+            togglePasswordVisibility(loginPasswordInput, this);
+        });
+    }
+
+    // Toggle password visibility for register
+    if (toggleRegisterPassword) {
+        toggleRegisterPassword.addEventListener('click', function() {
+            togglePasswordVisibility(registerPasswordInput, this);
+        });
+    }
+
+    function togglePasswordVisibility(input, button) {
+        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+        input.setAttribute('type', type);
+        button.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+    }
+
+    // Login form submission
+    if (userLoginForm) {
+        userLoginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const loginButton = document.getElementById('loginButton');
+            const loginButtonText = document.getElementById('loginButtonText');
+            const loginLoadingSpinner = document.getElementById('loginLoadingSpinner');
+
+            // Show loading state
+            loginButton.disabled = true;
+            loginButtonText.textContent = 'Signing in...';
+            loginLoadingSpinner.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Store token and user data
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    // Redirect to home page
+                    window.location.href = 'index.html';
+                } else {
+                    alert(data.message || 'Login failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Network error. Please check your connection and try again.');
+            } finally {
+                // Reset button state
+                loginButton.disabled = false;
+                loginButtonText.textContent = 'Sign In';
+                loginLoadingSpinner.classList.add('hidden');
+            }
+        });
+    }
+
+    // Register form submission
+    if (userRegisterForm) {
+        userRegisterForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const agreeTerms = document.getElementById('agreeTerms').checked;
+            
+            const registerButton = document.getElementById('registerButton');
+            const registerButtonText = document.getElementById('registerButtonText');
+            const registerLoadingSpinner = document.getElementById('registerLoadingSpinner');
+
+            // Validation
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return;
+            }
+
+            if (!agreeTerms) {
+                alert('Please agree to the Terms of Service and Privacy Policy');
+                return;
+            }
+
+            // Show loading state
+            registerButton.disabled = true;
+            registerButtonText.textContent = 'Creating Account...';
+            registerLoadingSpinner.classList.remove('hidden');
+
+            try {
+                console.log('🔄 Sending registration request...');
+                
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+                console.log('📨 Registration response:', data);
+
+                if (response.ok) {
+                    // Store token and user data
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    alert('Account created successfully! Welcome to SabSrul!');
+                    
+                    // Redirect to home page
+                    window.location.href = 'index.html';
+                } else {
+                    alert(data.message || 'Registration failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('❌ Registration error:', error);
+                alert('Network error. Please check your connection and try again.');
+            } finally {
+                // Reset button state
+                registerButton.disabled = false;
+                registerButtonText.textContent = 'Create Account';
+                registerLoadingSpinner.classList.add('hidden');
+            }
+        });
+    }
+
+    // Check if already logged in and redirect to home
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    if (token && user.id) {
+        window.location.href = 'index.html';
+    }
+});
+
+// Add this to your existing auth.js file
+
+// Forgot Password Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+    
+    if (forgotPasswordForm) {
+        forgotPasswordForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            
+            // Show loading state
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';
+            
+            try {
+                const response = await fetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('✅ ' + data.message);
+                    // Clear form
+                    forgotPasswordForm.reset();
+                } else {
+                    alert('❌ ' + (data.message || 'Failed to send reset email'));
+                }
+            } catch (error) {
+                console.error('Forgot password error:', error);
+                alert('❌ Network error. Please check your connection and try again.');
+            } finally {
+                // Reset button
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+            }
+        });
+    }
+    
+    // Reset Password Functionality
+    const resetPasswordForm = document.getElementById('resetPasswordForm');
+    if (resetPasswordForm) {
+        resetPasswordForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            
+            if (!token) {
+                alert('❌ Invalid reset link. Please request a new password reset.');
+                return;
+            }
+            
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            
+            // Validation
+            if (password.length < 6) {
+                alert('❌ Password must be at least 6 characters long');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                alert('❌ Passwords do not match');
+                return;
+            }
+            
+            // Show loading state
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Resetting...';
+            
+            try {
+                const response = await fetch(`/api/auth/reset-password/${token}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('✅ ' + data.message);
+                    // Redirect to login page
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    alert('❌ ' + (data.message || 'Failed to reset password'));
+                }
+            } catch (error) {
+                console.error('Reset password error:', error);
+                alert('❌ Network error. Please check your connection and try again.');
+            } finally {
+                // Reset button
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+            }
+        });
+    }
+});
 // --- Utility Functions for Token Handling ---
 
 /**
@@ -246,6 +553,77 @@ async function handleLogin(e) {
         setLoading(false);
     }
 }
+// Real-time username validation
+document.addEventListener('DOMContentLoaded', function() {
+    const usernameInput = document.getElementById('registerUsername');
+    const usernameError = document.getElementById('usernameError');
+    const usernameSuccess = document.getElementById('usernameSuccess');
+    const usernameAvailability = document.getElementById('usernameAvailability');
+
+    if (usernameInput) {
+        let usernameTimeout;
+        
+        usernameInput.addEventListener('input', function() {
+            const username = this.value.trim();
+            
+            // Clear previous timeout
+            clearTimeout(usernameTimeout);
+            
+            // Hide previous messages
+            usernameError.classList.add('hidden');
+            usernameSuccess.classList.add('hidden');
+            usernameAvailability.classList.add('hidden');
+            
+            // Validate format
+            const usernameRegex = /^[a-zA-Z0-9_]*$/;
+            if (!usernameRegex.test(username)) {
+                usernameError.textContent = 'Only letters, numbers, and underscores allowed';
+                usernameError.classList.remove('hidden');
+                return;
+            }
+            
+            if (username.length < 3) {
+                usernameError.textContent = 'Username must be at least 3 characters';
+                usernameError.classList.remove('hidden');
+                return;
+            }
+            
+            if (username.length > 30) {
+                usernameError.textContent = 'Username must be less than 30 characters';
+                usernameError.classList.remove('hidden');
+                return;
+            }
+            
+            // Check availability after user stops typing
+            usernameTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch('/api/auth/check-username', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ username })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        if (data.available) {
+                            usernameSuccess.textContent = 'Username is available!';
+                            usernameSuccess.classList.remove('hidden');
+                            usernameAvailability.classList.remove('hidden');
+                        } else {
+                            usernameError.textContent = 'Username is already taken';
+                            usernameError.classList.remove('hidden');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Username check error:', error);
+                }
+            }, 500); // Wait 500ms after user stops typing
+        });
+    }
+});
 
 // --- Initialization ---
 

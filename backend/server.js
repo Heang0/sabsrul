@@ -20,6 +20,9 @@ const videoRoutes = require('./routes/videos');
 const categoryRoutes = require('./routes/categories');
 const analyticsRoutes = require('./routes/analytics');
 
+// ADD USER ROUTES HERE
+const userRoutes = require('./routes/user'); // Add this line
+
 // --- 4. Database Connection ---
 const connectDB = async () => {
     try {
@@ -33,6 +36,12 @@ const connectDB = async () => {
         process.exit(1); 
     }
 };
+const fs = require('fs');
+const tempDir = './temp_thumbs';
+if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+    console.log('✅ Created temp directory for thumbnails');
+}
 
 // --- 5. Mount API Routes ---
 
@@ -43,6 +52,25 @@ app.get('/api', (req, res) => {
         version: '1.0.0'
     });
 });
+
+// Primary Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/videos', videoRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/analytics', analyticsRoutes); 
+
+// ADD THESE ROUTES AFTER YOUR EXISTING ONES
+const interactionRoutes = require('./routes/interactions');
+const playlistRoutes = require('./routes/playlists');
+
+// Add these after your existing app.use() routes
+app.use('/api/interactions', interactionRoutes);
+app.use('/api/playlists', playlistRoutes);
+app.use('/api/users', userRoutes); // Add this line for user routes
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+
 // --- 6.5. Specific Frontend Routes ---
 // Serve video detail page
 app.get('/video/:id', (req, res) => {
@@ -58,15 +86,12 @@ app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
+// Serve profile page
+app.get('/profile', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'profile.html'));
+});
+
 // ... add other specific routes as needed
-// Primary Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/videos', videoRoutes);
-app.use('/api/categories', categoryRoutes);
-
-// Admin Analytics (using /api/analytics for cleaner endpoint structure)
-app.use('/api/analytics', analyticsRoutes); 
-
 
 // --- 6. Frontend Catch-All Route ---
 
@@ -80,8 +105,9 @@ app.get('*', (req, res) => {
     }
 });
 
-
-// --- 7. Start Server ---
+// Add after your other routes
+const adminRoutes = require('./routes/admin');
+app.use('/api/admin', adminRoutes);
 
 const PORT = process.env.PORT || 3000;
 
@@ -91,5 +117,7 @@ connectDB().then(() => {
         console.log(`🚀 Server running on port ${PORT}`);
         console.log(`🔗 API Base: http://localhost:${PORT}/api`);
         console.log(`👤 Admin Login: http://localhost:${PORT}/login.html`);
+        console.log(`👤 User Profile: http://localhost:${PORT}/profile.html`);
     });
 });
+

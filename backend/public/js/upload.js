@@ -26,6 +26,14 @@ const confirmThumbnail = document.getElementById('confirmThumbnail');
 const selectedThumbnailPreview = document.getElementById('selectedThumbnailPreview');
 const selectedThumbnailImage = document.getElementById('selectedThumbnailImage');
 
+// Debug authentication
+console.log('🔐 Upload page - Checking auth...');
+console.log('Token exists:', localStorage.getItem('token'));
+console.log('User:', JSON.parse(localStorage.getItem('user') || '{}'));
+
+// Check if we're being redirected
+console.log('Current URL:', window.location.href);
+
 // Global variables
 let selectedVideoFile = null;
 let currentVideoId = null;
@@ -221,9 +229,10 @@ async function handleFormSubmit(e) {
         
         const response = await fetch(`${API_BASE_URL}/videos/upload`, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-            },
+           
+        headers: {
+    'Authorization': `Bearer ${localStorage.getItem('token')}`
+},
             body: formData
         });
         
@@ -358,9 +367,9 @@ async function confirmThumbnailSelection(thumbnailUrl) {
         const response = await fetch(`${API_BASE_URL}/videos/${currentVideoId}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-            },
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${localStorage.getItem('token')}`
+},
             body: JSON.stringify({ 
                 thumbnail: thumbnailUrl
             })
@@ -470,18 +479,27 @@ function removeExistingMessages() {
     existingMessages.forEach(msg => msg.remove());
 }
 
-// Auth functions
+// Auth functions - UPDATED
 function checkAuth() {
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-        window.location.href = 'login.html';
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    console.log('🔐 Upload page auth check:');
+    console.log('Token exists:', !!token);
+    console.log('User role:', user.role);
+    
+    if (!token || user.role !== 'admin') {
+        console.log('❌ Auth failed - redirecting to admin-login.html');
+        window.location.href = 'admin-login.html';
         return false;
     }
+    
+    console.log('✅ Auth passed - staying on upload page');
     return true;
 }
 
 function getAuthHeaders() {
-    const token = localStorage.getItem('adminToken');
+    const token = localStorage.getItem('token');
     return {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
@@ -489,7 +507,7 @@ function getAuthHeaders() {
 }
 
 function logout() {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminData');
-    window.location.href = 'login.html';
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = 'admin-login.html';
 }

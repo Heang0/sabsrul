@@ -227,6 +227,7 @@ exports.getMe = async (req, res) => {
     }
 };
 
+
 exports.forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
@@ -261,29 +262,41 @@ exports.forgotPassword = async (req, res) => {
         
         console.log('🔗 RESET LINK:', resetLink);
 
-        // Send response immediately
-        res.json({
-            success: true,
-            message: 'Password reset link has been sent to your email address.',
-            resetLink: resetLink // Still include for backup
-        });
-
-        // Try to send real email in background
-        setTimeout(async () => {
-            try {
-                console.log('📧 SENDING REAL EMAIL...');
-                const emailSent = await sendPasswordResetEmail(email, resetToken);
-                
-                if (emailSent) {
-                    console.log('🎉 EMAIL DELIVERY CONFIRMED for:', email);
-                } else {
-                    console.log('⚠️ Email delivery failed for:', email);
-                    console.log('💡 User can still use the reset link from the modal');
-                }
-            } catch (emailError) {
-                console.error('❌ Background email error:', emailError.message);
+        // 🔥 TRY TO SEND EMAIL IMMEDIATELY (not in background)
+        let emailSent = false;
+        let emailError = null;
+        
+        try {
+            console.log('📧 ATTEMPTING TO SEND REAL EMAIL...');
+            emailSent = await sendPasswordResetEmail(email, resetToken);
+            
+            if (emailSent) {
+                console.log('🎉 EMAIL SENT SUCCESSFULLY to:', email);
+            } else {
+                console.log('❌ EMAIL FAILED for:', email);
+                emailError = 'Email service temporarily unavailable';
             }
-        }, 100);
+        } catch (error) {
+            console.error('❌ Email sending error:', error.message);
+            emailError = error.message;
+        }
+
+        // Return response based on email status
+        if (emailSent) {
+            res.json({
+                success: true,
+                message: 'Password reset link has been sent to your email address.',
+                emailSent: true
+            });
+        } else {
+            res.json({
+                success: true,
+                message: 'Password reset link generated. Check your email (if not received, use the link below).',
+                resetLink: resetLink,
+                emailSent: false,
+                emailError: emailError
+            });
+        }
 
     } catch (error) {
         console.error('Forgot password error:', error);

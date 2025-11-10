@@ -34,18 +34,29 @@ if (transporter && transporter.verify) {
 
 const sendPasswordResetEmail = async (email, resetToken) => {
     return new Promise((resolve, reject) => {
-        // Set timeout to prevent hanging
         const timeout = setTimeout(() => {
-            console.log('⏰ Email sending timeout - skipping email');
-            resolve(true); // Don't reject, just skip email
-        }, 15000); // 15 second timeout
+            console.log('⏰ Email sending timeout after 15 seconds');
+            resolve(false);
+        }, 15000);
 
         try {
+            // Check if email credentials are configured
+            if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+                console.log('❌ EMAIL CREDENTIALS MISSING - Check Render environment variables');
+                console.log('EMAIL_USER:', process.env.EMAIL_USER ? '✅ Set' : '❌ Missing');
+                console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? '✅ Set' : '❌ Missing');
+                clearTimeout(timeout);
+                resolve(false);
+                return;
+            }
+
             const clientURL = process.env.CLIENT_URL || 'https://sabsrul.onrender.com';
             const resetLink = `${clientURL}/reset-password.html?token=${resetToken}`;
             
-            console.log('📧 SENDING REAL EMAIL TO:', email);
-            console.log('🔗 Reset Link:', resetLink);
+            console.log('📧 SENDING REAL EMAIL...');
+            console.log('From:', process.env.EMAIL_USER);
+            console.log('To:', email);
+            console.log('Reset Link:', resetLink);
 
             const mailOptions = {
                 from: `"SabSrul" <${process.env.EMAIL_USER}>`,
@@ -96,21 +107,26 @@ const sendPasswordResetEmail = async (email, resetToken) => {
             transporter.sendMail(mailOptions, (error, info) => {
                 clearTimeout(timeout);
                 if (error) {
-                    console.error('❌ Real email error:', error);
-                    // Don't reject - still allow password reset to work
+                    console.error('❌ REAL EMAIL ERROR:', error);
+                    console.error('Error details:', {
+                        code: error.code,
+                        command: error.command,
+                        response: error.response
+                    });
                     resolve(false);
                 } else {
                     console.log('✅ REAL EMAIL SENT SUCCESSFULLY!');
                     console.log('📧 Message ID:', info.messageId);
                     console.log('👤 To:', email);
+                    console.log('📨 Response:', info.response);
                     resolve(true);
                 }
             });
             
         } catch (error) {
             clearTimeout(timeout);
-            console.error('❌ Email service error:', error);
-            resolve(false); // Don't reject - allow password reset to work
+            console.error('❌ Email service unexpected error:', error);
+            resolve(false);
         }
     });
 };

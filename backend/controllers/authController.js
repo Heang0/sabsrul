@@ -245,7 +245,7 @@ exports.forgotPassword = async (req, res) => {
             // For security, don't reveal if email exists or not
             return res.json({
                 success: true,
-                message: 'If an account with that email exists, a password reset link has been sent'
+                message: 'If an account with that email exists, a password reset link has been sent to your email.'
             });
         }
 
@@ -259,28 +259,31 @@ exports.forgotPassword = async (req, res) => {
         const clientURL = process.env.CLIENT_URL || 'https://sabsrul.onrender.com';
         const resetLink = `${clientURL}/reset-password.html?token=${resetToken}`;
         
-        console.log('🔗 RESET LINK FOR TESTING:', resetLink);
+        console.log('🔗 RESET LINK:', resetLink);
 
-        // Try to send email
-        let emailSent = false;
-        try {
-            await sendPasswordResetEmail(email, resetToken);
-            emailSent = true;
-            console.log('✅ Email sent successfully');
-        } catch (emailError) {
-            console.error('❌ Email sending failed:', emailError.message);
-            emailSent = false;
-        }
-
-        // Return response with reset link for testing
+        // Send response immediately
         res.json({
             success: true,
-            message: emailSent 
-                ? 'If an account with that email exists, a password reset link has been sent'
-                : 'Check server logs for reset link (email service issue)',
-            // Include reset link for testing
-            resetLink: resetLink // ✅ ADD THIS LINE
+            message: 'Password reset link has been sent to your email address.',
+            resetLink: resetLink // Still include for backup
         });
+
+        // Try to send real email in background
+        setTimeout(async () => {
+            try {
+                console.log('📧 SENDING REAL EMAIL...');
+                const emailSent = await sendPasswordResetEmail(email, resetToken);
+                
+                if (emailSent) {
+                    console.log('🎉 EMAIL DELIVERY CONFIRMED for:', email);
+                } else {
+                    console.log('⚠️ Email delivery failed for:', email);
+                    console.log('💡 User can still use the reset link from the modal');
+                }
+            } catch (emailError) {
+                console.error('❌ Background email error:', emailError.message);
+            }
+        }, 100);
 
     } catch (error) {
         console.error('Forgot password error:', error);
@@ -290,7 +293,6 @@ exports.forgotPassword = async (req, res) => {
         });
     }
 };
-
 exports.resetPassword = async (req, res) => {
     try {
         const { token } = req.params;

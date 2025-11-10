@@ -255,7 +255,7 @@ exports.forgotPassword = async (req, res) => {
 
         console.log(`🔐 Generated reset token for ${email}: ${resetToken}`);
 
-        // Create reset link for testing
+        // Create reset link
         const clientURL = process.env.CLIENT_URL || 'https://sabsrul.onrender.com';
         const resetLink = `${clientURL}/reset-password.html?token=${resetToken}`;
         
@@ -278,8 +278,8 @@ exports.forgotPassword = async (req, res) => {
             message: emailSent 
                 ? 'If an account with that email exists, a password reset link has been sent'
                 : 'Check server logs for reset link (email service issue)',
-            // Include reset link in development for testing
-            resetLink: process.env.NODE_ENV === 'production' ? undefined : resetLink
+            // Include reset link for testing
+            resetLink: resetLink // ✅ ADD THIS LINE
         });
 
     } catch (error) {

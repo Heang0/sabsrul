@@ -11,8 +11,8 @@ try {
 } catch (error) {
     console.log('⚠️ Email config not found, creating default transporter...');
     
-    // Create fallback transporter
-    transporter = nodemailer.createTransporter({
+    // Create fallback transporter - FIXED: createTransport (not createTransporter)
+    transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
             user: process.env.EMAIL_USER,

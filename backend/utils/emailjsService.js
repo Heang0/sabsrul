@@ -1,4 +1,4 @@
-const axios = require('axios');
+const emailjs = require('@emailjs/nodejs');
 
 class EmailJSService {
     constructor() {
@@ -9,9 +9,10 @@ class EmailJSService {
     init() {
         if (process.env.EMAILJS_SERVICE_ID && process.env.EMAILJS_TEMPLATE_ID && process.env.EMAILJS_USER_ID) {
             this.initialized = true;
-            console.log('✅ EmailJS service initialized (Gmail via API)');
+            console.log('✅ EmailJS service initialized (Node.js SDK)');
             console.log('📧 Service ID:', process.env.EMAILJS_SERVICE_ID);
             console.log('📝 Template ID:', process.env.EMAILJS_TEMPLATE_ID);
+            console.log('🔑 Public Key:', process.env.EMAILJS_USER_ID);
         } else {
             console.log('❌ EmailJS credentials not found');
         }
@@ -27,26 +28,29 @@ class EmailJSService {
             const clientURL = process.env.CLIENT_URL || 'https://sabsrul.onrender.com';
             const resetLink = `${clientURL}/reset-password.html?token=${resetToken}`;
 
-            console.log('📧 Sending via EmailJS to:', email);
+            console.log('📧 Sending via EmailJS Node.js SDK to:', email);
             console.log('🔗 Reset Link:', resetLink);
 
-            const response = await axios.post('https://api.emailjs.com/api/v1.0/email/send', {
-                service_id: process.env.EMAILJS_SERVICE_ID,
-                template_id: process.env.EMAILJS_TEMPLATE_ID,
-                user_id: process.env.EMAILJS_USER_ID,
-                template_params: {
+            // Use EmailJS Node.js SDK
+            const response = await emailjs.send(
+                process.env.EMAILJS_SERVICE_ID,
+                process.env.EMAILJS_TEMPLATE_ID,
+                {
                     to_email: email,
                     reset_link: resetLink,
                     from_name: 'SabSrul'
+                },
+                {
+                    publicKey: process.env.EMAILJS_USER_ID,
                 }
-            });
+            );
 
             console.log('✅ Email sent via Gmail (EmailJS) to:', email);
             console.log('📨 Response status:', response.status);
             return true;
 
         } catch (error) {
-            console.error('❌ EmailJS error:', error.response?.data || error.message);
+            console.error('❌ EmailJS Node.js error:', error);
             return false;
         }
     }

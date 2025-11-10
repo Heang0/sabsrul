@@ -11,13 +11,17 @@ try {
 } catch (error) {
     console.log('⚠️ Email config not found, creating default transporter...');
     
-    // Create fallback transporter
+    // Create fallback transporter with timeout settings
     transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS
-        }
+        },
+        // Add timeout settings
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 10000
     });
 }
 

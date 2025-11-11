@@ -423,8 +423,10 @@ async function loadWatchLaterVideos() {
 
         if (response.ok) {
             const data = await response.json();
+            console.log('📹 Watch Later videos loaded:', data.videos?.length || 0);
             displayWatchLaterVideos(data.videos);
         } else {
+            console.log('🔄 Falling back to user profile watch later');
             await loadWatchLaterFromUser();
         }
     } catch (error) {
@@ -445,11 +447,16 @@ async function loadWatchLaterFromUser() {
         if (response.ok) {
             const data = await response.json();
             if (data.success && data.user.watchLater) {
+                console.log('📹 Watch Later from user profile:', data.user.watchLater.length);
                 displayWatchLaterVideos(data.user.watchLater);
+            } else {
+                console.log('📭 No watch later videos found');
+                displayWatchLaterVideos([]);
             }
         }
     } catch (error) {
         console.error('Error loading watch later from user:', error);
+        displayWatchLaterVideos([]);
     }
 }
 
@@ -458,16 +465,19 @@ function displayWatchLaterVideos(videos) {
     const emptyState = document.getElementById('emptyWatchLater');
     const totalElement = document.getElementById('watchLaterTotal');
 
+    console.log('🎬 Displaying watch later videos:', videos?.length || 0);
+
     if (!videos || videos.length === 0) {
         if (container) container.classList.add('hidden');
         if (emptyState) emptyState.classList.remove('hidden');
         if (totalElement) totalElement.textContent = '0 videos';
+        console.log('📭 No videos to display in watch later');
         return;
     }
 
     if (container) {
         container.innerHTML = videos.map(video => `
-            <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video._id}">
+            <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video._id || video.shortId}">
                 <div class="relative">
                     <img src="${video.thumbnail}" 
                          alt="${video.title}" 
@@ -492,6 +502,13 @@ function displayWatchLaterVideos(videos) {
     }
     if (emptyState) emptyState.classList.add('hidden');
     if (totalElement) totalElement.textContent = `${videos.length} video${videos.length !== 1 ? 's' : ''}`;
+    
+    console.log('✅ Watch later videos displayed successfully');
+    
+    // Ensure click handlers work for newly loaded videos
+    setTimeout(() => {
+        setupVideoClickHandlers();
+    }, 100);
 }
 
 // ==================== LIKED VIDEOS ====================
@@ -507,8 +524,10 @@ async function loadLikedVideos() {
 
         if (response.ok) {
             const data = await response.json();
+            console.log('❤️ Liked videos loaded:', data.videos?.length || 0);
             displayLikedVideos(data.videos);
         } else {
+            console.log('🔄 Falling back to user profile liked videos');
             await loadLikedFromUser();
         }
     } catch (error) {
@@ -529,11 +548,16 @@ async function loadLikedFromUser() {
         if (response.ok) {
             const data = await response.json();
             if (data.success && data.user.likedVideos) {
+                console.log('❤️ Liked videos from user profile:', data.user.likedVideos.length);
                 displayLikedVideos(data.user.likedVideos);
+            } else {
+                console.log('📭 No liked videos found');
+                displayLikedVideos([]);
             }
         }
     } catch (error) {
         console.error('Error loading liked videos from user:', error);
+        displayLikedVideos([]);
     }
 }
 
@@ -542,16 +566,19 @@ function displayLikedVideos(videos) {
     const emptyState = document.getElementById('emptyLiked');
     const totalElement = document.getElementById('likedTotal');
 
+    console.log('🎬 Displaying liked videos:', videos?.length || 0);
+
     if (!videos || videos.length === 0) {
         if (container) container.classList.add('hidden');
         if (emptyState) emptyState.classList.remove('hidden');
         if (totalElement) totalElement.textContent = '0 videos';
+        console.log('📭 No videos to display in liked videos');
         return;
     }
 
     if (container) {
         container.innerHTML = videos.map(video => `
-            <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video._id}">
+            <div class="rounded-xl overflow-hidden hover:shadow-lg transition duration-300 cursor-pointer video-card" data-video-id="${video._id || video.shortId}">
                 <div class="relative">
                     <img src="${video.thumbnail}" 
                          alt="${video.title}" 
@@ -576,6 +603,41 @@ function displayLikedVideos(videos) {
     }
     if (emptyState) emptyState.classList.add('hidden');
     if (totalElement) totalElement.textContent = `${videos.length} video${videos.length !== 1 ? 's' : ''}`;
+    
+    console.log('✅ Liked videos displayed successfully');
+    
+    // Ensure click handlers work for newly loaded videos
+    setTimeout(() => {
+        setupVideoClickHandlers();
+    }, 100);
+}
+
+// Add click event handlers for video cards
+function setupVideoClickHandlers() {
+    console.log('🎯 Setting up video click handlers...');
+    
+    // Remove any existing event listeners to prevent duplicates
+    document.removeEventListener('click', handleVideoCardClick);
+    
+    // Add new event listener
+    document.addEventListener('click', handleVideoCardClick);
+}
+
+// Handle video card clicks
+function handleVideoCardClick(e) {
+    const videoCard = e.target.closest('[data-video-id]');
+    if (videoCard) {
+        const videoId = videoCard.getAttribute('data-video-id');
+        console.log('🎬 Video card clicked:', videoId);
+        navigateToVideo(videoId);
+    }
+}
+
+// Navigate to video page
+function navigateToVideo(videoId) {
+    console.log('🚀 Navigating to video:', videoId);
+    // Use clean URL format: /video?id=VIDEO_ID
+    window.location.href = `/video?id=${videoId}`;
 }
 
 // ==================== PLAYLISTS ====================
@@ -857,7 +919,7 @@ function viewPlaylist(playlistId) {
                     ${playlist.videos && playlist.videos.length > 0 ? `
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             ${playlist.videos.map(video => `
-                                <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer" onclick="window.location.href='video.html?id=${video._id}'">
+                                <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer" onclick="window.location.href='/video?id=${video._id}'">
                                     <img src="${video.thumbnail}" 
                                          alt="${video.title}" 
                                          class="w-16 h-12 object-cover rounded"
@@ -997,11 +1059,9 @@ function updateUserInfo(user) {
 }
 
 function handleLogout() {
-    if (confirm('Are you sure you want to log out?')) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = 'index.html';
-    }
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/';
 }
 
 function formatDuration(seconds) {
@@ -1155,13 +1215,13 @@ function displayCategories(categories) {
     }
 }
 
-// Call this in your DOMContentLoaded
 document.addEventListener('DOMContentLoaded', function() {
     console.log('👤 Profile page loaded');
     checkAuthState();
     setupEventListeners();
     loadUserProfile();
-    loadCategories(); // Add this line to load categories
+    setupVideoClickHandlers(); // Make sure this is called
+    loadCategories();
     testAPIEndpoints();
 });
 
@@ -1220,10 +1280,11 @@ function populateProfileForm(user) {
     
     console.log('✅ Profile form populated successfully');
 }
-// Make functions globally available
+// Make navigation functions globally available
+window.navigateToVideo = navigateToVideo;
+window.setupVideoClickHandlers = setupVideoClickHandlers;
 window.viewPlaylist = viewPlaylist;
 window.closePlaylistModal = closePlaylistModal;
 window.createNewPlaylist = createNewPlaylist;
-// Make navigation functions globally available
 window.setupMobileNavigation = setupMobileNavigation;
 window.closeAllMenus = closeAllMenus;

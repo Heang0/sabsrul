@@ -72,8 +72,13 @@ app.use('/api/users', userRoutes); // Add this line for user routes
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // --- 6.5. Specific Frontend Routes ---
-// Serve video detail page
+// Serve video detail page (old format)
 app.get('/video/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'video.html'));
+});
+
+// 🔥 ADD THIS: Serve video page with clean URL
+app.get('/video', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'video.html'));
 });
 
@@ -136,7 +141,15 @@ app.get('/confirm-deletion', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'confirm-deletion.html'));
 });
 
+// Serve index page
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
+// 🔥 ADD THIS: Serve index page with /index URL
+app.get('/index', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // This serves the frontend application for all non-API requests.
 // NOTE: For better SPA routing, you might need to adjust this, 
@@ -159,8 +172,7 @@ connectDB().then(() => {
     app.listen(PORT, () => {
         console.log(`🚀 Server running on port ${PORT}`);
         console.log(`🔗 API Base: http://localhost:${PORT}/api`);
-        console.log(`👤 Admin Login: http://localhost:${PORT}/login.html`);
-        console.log(`👤 User Profile: http://localhost:${PORT}/profile.html`);
+        console.log(`👤 Admin Login: http://localhost:${PORT}/login`); // Remove .html
+        console.log(`👤 User Profile: http://localhost:${PORT}/profile`); // Remove .html
     });
 });
-

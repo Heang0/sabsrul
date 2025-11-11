@@ -87,9 +87,8 @@ function setupEventListeners() {
 
 // Navigate to video page
 function navigateToVideo(videoId) {
-    window.location.href = `/video.html?id=${videoId}`;
+    window.location.href = `/video?id=${videoId}`;
 }
-
 // ==================== INTERACTION FUNCTIONS ====================
 
 async function handleLike() {
@@ -239,7 +238,7 @@ function updateWatchLaterUI() {
 
 function showLoginPrompt(action) {
     if (confirm(`Please log in to ${action}. Would you like to go to the login page?`)) {
-        window.location.href = 'login.html';
+        window.location.href = '/login'; // Change from 'login.html'
     }
 }
 
@@ -511,8 +510,8 @@ function displayVideo(video) {
         videoCategory.textContent = categoryName;
         videoCategory.classList.add('cursor-pointer', 'hover:bg-purple-200');
         videoCategory.title = `View all ${categoryName} videos`;
-        videoCategory.addEventListener('click', () => {
-            window.location.href = `index.html?category=${video.category}`;
+             videoCategory.addEventListener('click', () => {
+            window.location.href = `/?category=${video.category}`; // Change from 'index.html?category='
         });
     }
     
@@ -832,7 +831,7 @@ function setupVideoSearch() {
             if (e.key === 'Enter') {
                 const query = this.value.trim();
                 if (query.length > 0) {
-                    window.location.href = `index.html?search=${encodeURIComponent(query)}`;
+                    window.location.href = `/?search=${encodeURIComponent(query)}`; // Change from 'index.html?search='
                 }
             }
         });
@@ -859,10 +858,9 @@ function clearVideoSearch() {
     
     // If we're on a tag or search page, redirect to clean index
     if (tag || search) {
-        window.location.href = 'index.html';
+        window.location.href = '/'; // Change from 'index.html'
     }
 }
-
 // ==================== UTILITY FUNCTIONS ====================
 
 // Show video error state
@@ -972,8 +970,11 @@ function handleShare() {
 // Make functions globally available
 window.filterByTag = filterByTag;
 window.loadMoreRelatedVideos = loadMoreRelatedVideos;
+// Make sure this function is available globally
 window.loadVideosByCategory = function(category) {
-    window.location.href = `index.html?category=${category}`;
+    console.log(`🎯 Loading videos for category: ${category}`);
+    // This will navigate to the category-specific view
+    window.location.href = `/?category=${category}`;
 };
 window.handleAddToPlaylist = handleAddToPlaylist;
 window.togglePlaylistDropdown = togglePlaylistDropdown;
@@ -997,7 +998,7 @@ function filterByTag(tag) {
     }
     
     // Navigate to index with tag filter
-    window.location.href = `index.html?tag=${encodeURIComponent(tag)}`;
+    window.location.href = `/?tag=${encodeURIComponent(tag)}`; // Change from 'index.html?tag='
 }
 
 // Quick fix for related videos click
@@ -1005,7 +1006,7 @@ document.addEventListener('click', function(e) {
     const videoCard = e.target.closest('.video-card');
     if (videoCard && videoCard.hasAttribute('data-video-id')) {
         const videoId = videoCard.getAttribute('data-video-id');
-        window.location.href = `/video.html?id=${videoId}`;
+        window.location.href = `/video?id=${videoId}`; // Change from '/video.html?id='
     }
 });
 

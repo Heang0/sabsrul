@@ -20,7 +20,7 @@
         <div class="flex justify-between items-center h-16">
             <!-- Logo -->
             <div class="flex items-center space-x-3">
-                <a href="index.html" class="flex items-center space-x-3">
+                <a href="/" class="flex items-center space-x-3">
                     <img src="img/sabsrul.png" alt="SabSrul" class="h-8 w-auto">
                     <span class="text-xl font-bold text-gray-900">SabSrul</span>
                 </a>
@@ -61,7 +61,7 @@
                             
                             <!-- User Dropdown Menu -->
                             <div id="userDropdownMenu" class="absolute hidden right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
-                                <a href="profile.html" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                                <a href="/profile" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                                     <i class="fas fa-user mr-3 w-4"></i>
                                     My Profile
                                 </a>
@@ -76,10 +76,10 @@
 
                     <!-- Login/Register Buttons -->
                     <div id="authButtons" class="flex items-center space-x-2 sm:space-x-3">
-                        <a href="login.html" class="text-gray-600 hover:text-gray-900 font-medium transition-colors text-sm sm:text-base">
+                        <a href="/login" class="text-gray-600 hover:text-gray-900 font-medium transition-colors text-sm sm:text-base">
                             Login
                         </a>
-                        <a href="login.html" class="bg-purple-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg hover:bg-purple-700 transition-colors font-medium text-sm sm:text-base">
+                        <a href="/login" class="bg-purple-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded-lg hover:bg-purple-700 transition-colors font-medium text-sm sm:text-base">
                             Sign Up
                         </a>
                     </div>
@@ -100,19 +100,19 @@
                 
                 <!-- User Links (only show when logged in) -->
                 <div id="mobileUserLinks" class="border-t border-gray-200 pt-4 hidden">
-                    <a href="profile.html" class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg">
+                    <a href="/profile" class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg">
                         <i class="fas fa-user text-purple-500 mr-3 w-4"></i>
                         <span>My Profile</span>
                     </a>
                 </div>
                 
-                <!-- Home Link -->
-                <div class="border-t border-gray-200 pt-4">
-                    <a href="index.html" class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg">
-                        <i class="fas fa-home text-purple-500 mr-3 w-4"></i>
-                        <span>Home</span>
-                    </a>
-                </div>
+                                                            <!-- Home Link -->
+                        <div class="border-t border-gray-200 pt-4">
+                            <a href="/" class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg"> <!-- Change from "/index" -->
+                                <i class="fas fa-home text-purple-500 mr-3 w-4"></i>
+                                <span>Home</span>
+                            </a>
+                        </div>
             </div>
         </div>
     </div>
@@ -228,7 +228,7 @@
                         </div>
                         <h3 class="text-lg font-semibold text-gray-900 mb-2">No Videos Saved</h3>
                         <p class="text-gray-500 mb-4">Videos you add to Watch Later will appear here.</p>
-                        <a href="index.html" class="inline-flex items-center space-x-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium">
+                        <a href="/" class="inline-flex items-center space-x-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium">
                             <i class="fas fa-play"></i>
                             <span>Browse Videos</span>
                         </a>
@@ -277,7 +277,7 @@
                         </div>
                         <h3 class="text-lg font-semibold text-gray-900 mb-2">No Liked Videos</h3>
                         <p class="text-gray-500 mb-4">Videos you like will appear here.</p>
-                        <a href="index.html" class="inline-flex items-center space-x-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium">
+                        <a href="/" class="inline-flex items-center space-x-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium">
                             <i class="fas fa-play"></i>
                             <span>Browse Videos</span>
                         </a>
@@ -425,33 +425,34 @@
         
         if (!categories || categories.length === 0) return;
         
-        // Desktop categories dropdown
-        if (desktopCategories) {
-            desktopCategories.innerHTML = categories.map(category => `
-                <a href="index.html?category=${category.slug || category.name}" 
-                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors capitalize">
-                    ${category.name}
-                </a>
-            `).join('');
-        }
-        
-        // Mobile categories menu
-        if (mobileCategories) {
-            mobileCategories.innerHTML = `
-                <a href="index.html?category=all" 
-                   class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg border border-gray-100">
-                    <i class="fas fa-play-circle text-purple-500 mr-3 w-4"></i>
-                    <span>All Categories</span>
-                </a>
-                ${categories.map(category => `
-                    <a href="index.html?category=${category.slug || category.name}" 
-                       class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg border border-gray-100">
-                        <i class="fas fa-play-circle text-purple-500 mr-3 w-4"></i>
-                        <span class="capitalize">${category.name}</span>
+                            // Desktop categories dropdown
+            if (desktopCategories) {
+                desktopCategories.innerHTML = categories.map(category => `
+                    <a href="/?category=${category.slug || category.name}"  <!-- Change from "index.html?category=" -->
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors capitalize">
+                        ${category.name}
                     </a>
-                `).join('')}
-            `;
-        }
+                `).join('');
+            }
+        
+               // Mobile categories menu
+if (mobileCategories) {
+    mobileCategories.innerHTML = `
+        <a href="/?category=all" 
+           class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg border border-gray-100">
+            <i class="fas fa-play-circle text-purple-500 mr-3 w-4"></i> <!-- Play icon for All Categories -->
+            <span>All Categories</span>
+        </a>
+        ${categories.map(category => `
+            <a href="/?category=${category.slug || category.name}" 
+               class="flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors rounded-lg border border-gray-100">
+                <i class="fas fa-play-circle text-purple-500 mr-3 w-4"></i> <!-- Play icon for each category -->
+                <span class="capitalize">${category.name}</span>
+            </a>
+        `).join('')}
+    `;
+}
+         
     }
 
     // Utility Functions
@@ -486,20 +487,19 @@
         removeMobileBackdrop();
     }
 
-    // Auth check for profile page
-    function checkAuthState() {
-        const token = localStorage.getItem('token');
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        
-        if (token && user.id) {
-            document.getElementById('userSection').classList.remove('hidden');
-            document.getElementById('authButtons').classList.add('hidden');
-            updateUserInfo(user);
-        } else {
-            window.location.href = 'login.html';
-        }
+// Auth check for profile page
+function checkAuthState() {
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    if (token && user.id) {
+        document.getElementById('userSection').classList.remove('hidden');
+        document.getElementById('authButtons').classList.add('hidden');
+        updateUserInfo(user);
+    } else {
+        window.location.href = '/login'; // Change from 'login.html'
     }
-
+}
     // function updateUserInfo(user) {
     //     const userAvatar = document.getElementById('userAvatar');
     //     const userName = document.getElementById('userName');

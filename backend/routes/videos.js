@@ -248,6 +248,59 @@ async function generateThumbnailsFromVideo(videoPath) {
         resolve(thumbnails);
     });
 }
+// Temporary test route for R2 deletion
+router.delete('/test-r2-delete/:key', auth, async (req, res) => {
+  try {
+    const { key } = req.params;
+    console.log('🧪 Testing R2 deletion for key:', key);
+    
+    const result = await deleteFromR2(key);
+    
+    res.json({
+      success: result.success,
+      message: result.success ? 'File deleted from R2' : 'Failed to delete from R2',
+      error: result.error
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Test deletion failed',
+      error: error.message
+    });
+  }
+});
+
+// Add this temporary debug route
+router.delete('/debug/r2-test/:videoId', auth, async (req, res) => {
+  try {
+    const video = await Video.findById(req.params.videoId);
+    if (!video) {
+      return res.status(404).json({ message: 'Video not found' });
+    }
+
+    console.log('🔍 DEBUG - Video details:', {
+      videoUrl: video.videoUrl,
+      thumbnail: video.thumbnail,
+      thumbnails: video.thumbnails
+    });
+
+    // Test R2 deletion with a simple file
+    const testResult = await deleteFromR2('test-file.txt');
+    console.log('🔍 DEBUG - R2 connection test:', testResult);
+
+    res.json({
+      video: {
+        videoUrl: video.videoUrl,
+        thumbnail: video.thumbnail,
+        thumbnails: video.thumbnails
+      },
+      r2Test: testResult
+    });
+  } catch (error) {
+    console.error('🔍 DEBUG - Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 router.get('/admin/all', auth, async (req, res) => {
     try {
         // Check if user is admin

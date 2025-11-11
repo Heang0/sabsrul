@@ -1,5 +1,6 @@
 const Video = require('../models/Video');
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const { deleteFromR2 } = require('../utils/r2Upload'); // ✅ KEEP ONLY THIS ONE
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffprobePath = require('@ffprobe-installer/ffprobe').path;
@@ -8,7 +9,7 @@ ffmpeg.setFfprobePath(ffprobePath);
 const fs = require('fs');
 const path = require('path');
 
-// Configure Cloudflare R2
+// R2 Client configuration
 const r2Client = new S3Client({
   region: 'auto',
   endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
@@ -678,6 +679,162 @@ exports.updateVideo = async (req, res) => {
   }
 };
 
+
+
+// Update the deleteVideo function with detailed logging
+exports.deleteVideo = async (req, res) => {
+  try {
+    const videoId = req.params.id;
+    console.log('🗑️ Starting video deletion process for:', videoId);
+    
+    const video = await Video.findById(videoId);
+    if (!video) {
+      console.log('❌ Video not found in database:', videoId);
+      return res.status(404).json({ message: 'Video not found' });
+    }
+
+    console.log('📹 Video found:', {
+      title: video.title,
+      videoUrl: video.videoUrl,
+      thumbnail: video.thumbnail,
+      thumbnailsCount: video.thumbnails?.length || 0
+    });
+
+    // Extract R2 key from URL - IMPROVED VERSION
+    const extractR2Key = (url) => {
+      if (!url || typeof url !== 'string') {
+        console.log('❌ Invalid URL provided:', url);
+        return null;
+      }
+      
+      try {
+        // Handle both full URLs and relative paths
+        if (url.includes(process.env.R2_PUBLIC_URL)) {
+          // Full R2 URL
+          const urlObj = new URL(url);
+          return urlObj.pathname.substring(1); // Remove leading slash
+        } else if (url.startsWith('videos/') || url.startsWith('thumbnails/')) {
+          // Already a key
+          return url;
+        } else {
+          // Try to extract from any URL format
+          const parts = url.split('/');
+          const keyIndex = parts.findIndex(part => part === 'videos' || part === 'thumbnails');
+          if (keyIndex !== -1) {
+            return parts.slice(keyIndex).join('/');
+          }
+          console.log('❌ Could not extract R2 key from URL:', url);
+          return null;
+        }
+      } catch (error) {
+        console.log('❌ URL parsing error:', error.message, 'URL:', url);
+        return null;
+      }
+    };
+
+    const deletionResults = {
+      video: false,
+      thumbnail: false,
+      additionalThumbs: 0,
+      errors: []
+    };
+
+    // Delete video file from R2
+    if (video.videoUrl) {
+      const videoKey = extractR2Key(video.videoUrl);
+      console.log('🎬 Video key extracted:', videoKey);
+      
+      if (videoKey) {
+        try {
+          console.log('🚀 Attempting to delete video from R2...');
+          const videoDeleteResult = await deleteFromR2(videoKey);
+          if (videoDeleteResult.success) {
+            console.log('✅ Video file deleted from R2');
+            deletionResults.video = true;
+          } else {
+            console.log('❌ Failed to delete video from R2:', videoDeleteResult.error);
+            deletionResults.errors.push(`Video: ${videoDeleteResult.error}`);
+          }
+        } catch (error) {
+          console.log('❌ Exception deleting video:', error);
+          deletionResults.errors.push(`Video exception: ${error.message}`);
+        }
+      } else {
+        console.log('⚠️ No video key extracted, skipping R2 deletion');
+      }
+    }
+
+    // Delete main thumbnail from R2
+    if (video.thumbnail) {
+      const thumbnailKey = extractR2Key(video.thumbnail);
+      console.log('🖼️ Thumbnail key extracted:', thumbnailKey);
+      
+      if (thumbnailKey) {
+        try {
+          console.log('🚀 Attempting to delete thumbnail from R2...');
+          const thumbDeleteResult = await deleteFromR2(thumbnailKey);
+          if (thumbDeleteResult.success) {
+            console.log('✅ Thumbnail deleted from R2');
+            deletionResults.thumbnail = true;
+          } else {
+            console.log('❌ Failed to delete thumbnail from R2:', thumbDeleteResult.error);
+            deletionResults.errors.push(`Thumbnail: ${thumbDeleteResult.error}`);
+          }
+        } catch (error) {
+          console.log('❌ Exception deleting thumbnail:', error);
+          deletionResults.errors.push(`Thumbnail exception: ${error.message}`);
+        }
+      } else {
+        console.log('⚠️ No thumbnail key extracted, skipping R2 deletion');
+      }
+    }
+
+    // Delete additional thumbnails from R2
+    if (video.thumbnails && Array.isArray(video.thumbnails)) {
+      console.log('📸 Processing additional thumbnails:', video.thumbnails.length);
+      
+      for (const thumbUrl of video.thumbnails) {
+        const thumbKey = extractR2Key(thumbUrl);
+        if (thumbKey && thumbKey !== extractR2Key(video.thumbnail)) {
+          console.log('🖼️ Additional thumbnail key:', thumbKey);
+          try {
+            const thumbDeleteResult = await deleteFromR2(thumbKey);
+            if (thumbDeleteResult.success) {
+              console.log('✅ Additional thumbnail deleted from R2');
+              deletionResults.additionalThumbs++;
+            } else {
+              console.log('❌ Failed to delete additional thumbnail:', thumbDeleteResult.error);
+              deletionResults.errors.push(`Additional thumb: ${thumbDeleteResult.error}`);
+            }
+          } catch (error) {
+            console.log('❌ Exception deleting additional thumbnail:', error);
+            deletionResults.errors.push(`Additional thumb exception: ${error.message}`);
+          }
+        }
+      }
+    }
+
+    // Finally, delete from database
+    console.log('🗃️ Deleting video from database...');
+    await Video.findByIdAndDelete(videoId);
+    
+    console.log('🎉 Deletion completed. Summary:', deletionResults);
+    
+    res.json({ 
+      success: true,
+      message: 'Video deleted successfully',
+      r2Deletion: deletionResults
+    });
+    
+  } catch (error) {
+    console.error('❌ Error in deleteVideo:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Error deleting video: ' + error.message 
+    });
+  }
+};
+
 // Get videos for admin (including drafts)
 exports.getAdminVideos = async (req, res) => {
   try {
@@ -729,20 +886,7 @@ exports.getAdminVideos = async (req, res) => {
   }
 };
 
-// Delete video
-exports.deleteVideo = async (req, res) => {
-  try {
-    const video = await Video.findById(req.params.id);
-    if (!video) {
-      return res.status(404).json({ message: 'Video not found' });
-    }
 
-    await Video.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Video deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error deleting video: ' + error.message });
-  }
-};
 
 // Extract frames
 exports.extractFrames = async (req, res) => {

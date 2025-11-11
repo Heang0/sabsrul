@@ -798,30 +798,31 @@ function closeDeleteModal() {
 }
 
 async function handleDeleteVideo() {
-    if (!videoToDelete) return;
+  if (!videoToDelete) return;
+  
+  try {
+    console.log('🗑️ Deleting video:', videoToDelete);
     
-    try {
-        console.log('🗑️ Deleting video:', videoToDelete);
-        
-        const response = await fetch(`${API_BASE_URL}/videos/${videoToDelete}`, {
-            method: 'DELETE',
-            headers: getAuthHeaders()
-        });
-        
-        console.log('📡 Delete response status:', response.status);
-        
-        if (response.ok) {
-            showSuccess('Video deleted successfully');
-            closeDeleteModal();
-            loadVideos(currentPage);
-        } else {
-            const errorText = await response.text();
-            throw new Error(`Delete failed: ${response.status} - ${errorText}`);
-        }
-    } catch (error) {
-        console.error('❌ Error deleting video:', error);
-        showError('Failed to delete video: ' + error.message);
+    const response = await fetch(`${API_BASE_URL}/videos/${videoToDelete}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    
+    console.log('📡 Delete response status:', response.status);
+    
+    if (response.ok) {
+      const result = await response.json();
+      showSuccess(result.message || 'Video deleted successfully from database and Cloudflare R2');
+      closeDeleteModal();
+      loadVideos(currentPage);
+    } else {
+      const errorText = await response.text();
+      throw new Error(`Delete failed: ${response.status} - ${errorText}`);
     }
+  } catch (error) {
+    console.error('❌ Error deleting video:', error);
+    showError('Failed to delete video: ' + error.message);
+  }
 }
 
 // State management - UPDATED

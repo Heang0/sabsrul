@@ -1,6 +1,16 @@
 const { PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
-const r2Client = require('../config/r2');
+const { S3Client } = require('@aws-sdk/client-s3'); // ADD THIS
 const crypto = require('crypto');
+
+// ✅ ADD R2 CLIENT CONFIGURATION HERE:
+const r2Client = new S3Client({
+  region: 'auto',
+  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY
+  }
+});
 
 const generateFileName = (bytes = 32) => crypto.randomBytes(bytes).toString('hex');
 
@@ -73,8 +83,10 @@ const deleteFromR2 = async (key) => {
       Key: key,
     };
 
+    console.log(`🗑️ Attempting to delete from R2: ${key}`);
+    
     await r2Client.send(new DeleteObjectCommand(deleteParams));
-    console.log(`✅ Deleted from R2: ${key}`);
+    console.log(`✅ Successfully deleted from R2: ${key}`);
     return { success: true };
   } catch (error) {
     console.error('❌ R2 Delete Error:', error);

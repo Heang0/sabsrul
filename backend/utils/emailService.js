@@ -1,14 +1,15 @@
-const BrevoApiService = require('./brevoApiService');
+
+const Web3FormsService = require('./web3formsService');
 
 const sendPasswordResetEmail = async (email, resetToken) => {
     console.log('📧 Attempting to send password reset email to:', email);
     
-    // Try Brevo API (works on Render free tier)
-    if (process.env.BREVO_API_KEY) {
-        console.log('🔄 Trying Brevo API...');
-        const sent = await BrevoApiService.sendPasswordResetEmail(email, resetToken);
+    // Try Web3Forms (works reliably with Gmail)
+    if (process.env.WEB3FORMS_ACCESS_KEY) {
+        console.log('🔄 Trying Web3Forms...');
+        const sent = await Web3FormsService.sendPasswordResetEmail(email, resetToken);
         if (sent) {
-            console.log('✅ Email sent via Brevo API');
+            console.log('✅ Email sent via Web3Forms');
             return true;
         }
     }

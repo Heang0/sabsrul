@@ -1,4 +1,3 @@
-
 const axios = require('axios');
 
 class Web3FormsService {
@@ -13,7 +12,6 @@ class Web3FormsService {
             console.log('✅ Web3Forms service initialized');
         } else {
             console.log('❌ WEB3FORMS_ACCESS_KEY not found');
-            console.log('💡 Get free key from: https://web3forms.com');
         }
     }
 
@@ -34,20 +32,10 @@ class Web3FormsService {
                 subject: 'SabSrul - Password Reset Request',
                 from_name: 'SabSrul',
                 email: email,
-                message: `
-                    You requested to reset your password for SabSrul video platform.
-                    
-                    Click this link to reset your password:
-                    ${resetLink}
-                    
-                    This link will expire in 1 hour.
-                    
-                    If you didn't request this reset, please ignore this email.
-                `
+                message: `Reset your password: ${resetLink}`
             });
 
             console.log('✅ Email sent via Web3Forms to:', email);
-            console.log('📨 Response:', response.data);
             return response.data.success;
 
         } catch (error) {

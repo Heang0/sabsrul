@@ -1133,6 +1133,7 @@ async function getTotalCategoryCounts() {
         
         // Load ALL videos to count by category
         const response = await fetch(`${API_BASE_URL}/videos?limit=1000`);
+        
         if (response.ok) {
             const data = await response.json();
             const allVideos = data.videos || [];
@@ -1147,14 +1148,15 @@ async function getTotalCategoryCounts() {
             
             console.log('📊 Total category counts calculated:', categoryCounts);
             return categoryCounts;
+        } else {
+            console.warn('⚠️ Could not load videos for counting, using fallback');
+            return {}; // Return empty object as fallback
         }
-        
-        throw new Error('Could not load videos for counting');
         
     } catch (error) {
         console.error('❌ Error getting total category counts:', error);
         
-        // Final fallback: return empty object (will use displayed count)
+        // Return empty object instead of throwing error
         return {};
     }
 }

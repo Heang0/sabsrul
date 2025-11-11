@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Login form submission
+    // Login form submission
     if (userLoginForm) {
         userLoginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -91,6 +92,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const loginButton = document.getElementById('loginButton');
             const loginButtonText = document.getElementById('loginButtonText');
             const loginLoadingSpinner = document.getElementById('loginLoadingSpinner');
+
+            // Remove any existing error messages
+            removeExistingErrorMessages(this);
+
+            // Basic validation
+            if (!email || !password) {
+                showInlineError(this, 'Please fill in all fields');
+                return;
+            }
 
             // Show loading state
             loginButton.disabled = true;
@@ -113,14 +123,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
                     
-                    // Redirect to home page
-                    window.location.href = 'index.html';
+                    // Show success message
+                    showInlineSuccess(this, 'Login successful! Redirecting...');
+                    
+                    // Redirect to home page after short delay
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
                 } else {
-                    alert(data.message || 'Login failed. Please try again.');
+                    // Show beautiful inline error message
+                    showInlineError(this, data.message || 'Invalid email or password');
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                alert('Network error. Please check your connection and try again.');
+                showInlineError(this, 'Network error. Please check your connection and try again.');
             } finally {
                 // Reset button state
                 loginButton.disabled = false;
@@ -129,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-
+    // Register form submission
     // Register form submission
     if (userRegisterForm) {
         userRegisterForm.addEventListener('submit', async function(e) {
@@ -145,14 +161,27 @@ document.addEventListener('DOMContentLoaded', function() {
             const registerButtonText = document.getElementById('registerButtonText');
             const registerLoadingSpinner = document.getElementById('registerLoadingSpinner');
 
+            // Remove existing error messages
+            removeExistingErrorMessages(this);
+
             // Validation
+            if (!username || !email || !password || !confirmPassword) {
+                showInlineError(this, 'Please fill in all fields');
+                return;
+            }
+
             if (password !== confirmPassword) {
-                alert('Passwords do not match!');
+                showInlineError(this, 'Passwords do not match!');
+                return;
+            }
+
+            if (password.length < 6) {
+                showInlineError(this, 'Password must be at least 6 characters long');
                 return;
             }
 
             if (!agreeTerms) {
-                alert('Please agree to the Terms of Service and Privacy Policy');
+                showInlineError(this, 'Please agree to the Terms of Service and Privacy Policy');
                 return;
             }
 
@@ -180,16 +209,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
                     
-                    alert('Account created successfully! Welcome to SabSrul!');
+                    showInlineSuccess(this, 'Account created successfully! Welcome to SabSrul!');
                     
-                    // Redirect to home page
-                    window.location.href = 'index.html';
+                    // Redirect to home page after short delay
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1500);
                 } else {
-                    alert(data.message || 'Registration failed. Please try again.');
+                    showInlineError(this, data.message || 'Registration failed. Please try again.');
                 }
             } catch (error) {
                 console.error('❌ Registration error:', error);
-                alert('Network error. Please check your connection and try again.');
+                showInlineError(this, 'Network error. Please check your connection and try again.');
             } finally {
                 // Reset button state
                 registerButton.disabled = false;
@@ -204,13 +235,67 @@ document.addEventListener('DOMContentLoaded', function() {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     
     if (token && user.id) {
-        window.location.href = 'index.html';
+        window.location.href = '/';
     }
 });
 
-// Add this to your existing auth.js file
+// --- Professional Error/Success Message Functions ---
 
-// Forgot Password Functionality
+// Remove existing error messages
+function removeExistingErrorMessages(form) {
+    const existingErrors = form.querySelectorAll('.form-error-message, .form-success-message');
+    existingErrors.forEach(error => error.remove());
+}
+
+// Show beautiful inline error message
+function showInlineError(form, message) {
+    removeExistingErrorMessages(form);
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'form-error-message w-full mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-center animate-slideDown';
+    errorDiv.innerHTML = `
+        <div class="flex flex-col items-center justify-center space-y-2">
+            <div class="flex items-center justify-center">
+                <i class="fas fa-exclamation-circle text-red-500 text-lg mr-2"></i>
+                <h4 class="text-sm font-medium text-red-800">Something went wrong</h4>
+            </div>
+            <p class="text-sm text-red-700">${message}</p>
+            <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-400 hover:text-red-600 transition duration-200 text-xs mt-1">
+                <i class="fas fa-times mr-1"></i>Dismiss
+            </button>
+        </div>
+    `;
+    
+    // SAFE INSERTION - Append to the end of the form
+    form.appendChild(errorDiv);
+    
+    // Add shake animation to the form
+    form.classList.add('animate-shake');
+    setTimeout(() => {
+        form.classList.remove('animate-shake');
+    }, 500);
+}
+
+// Show beautiful inline success message
+function showInlineSuccess(form, message) {
+    removeExistingErrorMessages(form);
+    
+    const successDiv = document.createElement('div');
+    successDiv.className = 'form-success-message w-full mt-4 p-4 bg-green-50 border border-green-200 rounded-lg text-center animate-slideDown';
+    successDiv.innerHTML = `
+        <div class="flex flex-col items-center justify-center space-y-2">
+            <div class="flex items-center justify-center">
+                <i class="fas fa-check-circle text-green-500 text-lg mr-2"></i>
+                <h4 class="text-sm font-medium text-green-800">Success!</h4>
+            </div>
+            <p class="text-sm text-green-700">${message}</p>
+        </div>
+    `;
+    
+    // SAFE INSERTION - Append to the end of the form
+    form.appendChild(successDiv);
+}
+// --- Forgot Password Functionality ---
 document.addEventListener('DOMContentLoaded', function() {
     const forgotPasswordForm = document.getElementById('forgotPasswordForm');
     
@@ -221,6 +306,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const email = document.getElementById('email').value;
             const submitButton = this.querySelector('button[type="submit"]');
             const originalText = submitButton.textContent;
+            
+            // Remove existing messages
+            removeExistingErrorMessages(this);
+            
+            // Basic validation
+            if (!email) {
+                showInlineError(this, 'Please enter your email address');
+                return;
+            }
             
             // Show loading state
             submitButton.disabled = true;
@@ -238,15 +332,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
                 
                 if (response.ok) {
-                    alert('✅ ' + data.message);
-                    // Clear form
-                    forgotPasswordForm.reset();
+                    showInlineSuccess(this, 'Password reset link has been generated! Check the modal for your reset link.');
+                    this.reset();
                 } else {
-                    alert('❌ ' + (data.message || 'Failed to send reset email'));
+                    showInlineError(this, data.message || 'Failed to generate reset link');
                 }
             } catch (error) {
                 console.error('Forgot password error:', error);
-                alert('❌ Network error. Please check your connection and try again.');
+                showInlineError(this, 'Network error. Please check your connection and try again.');
             } finally {
                 // Reset button
                 submitButton.disabled = false;
@@ -265,7 +358,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const token = urlParams.get('token');
             
             if (!token) {
-                alert('❌ Invalid reset link. Please request a new password reset.');
+                showInlineError(this, 'Invalid reset link. Please request a new password reset.');
                 return;
             }
             
@@ -274,14 +367,22 @@ document.addEventListener('DOMContentLoaded', function() {
             const submitButton = this.querySelector('button[type="submit"]');
             const originalText = submitButton.textContent;
             
+            // Remove existing messages
+            removeExistingErrorMessages(this);
+            
             // Validation
+            if (!password || !confirmPassword) {
+                showInlineError(this, 'Please fill in all fields');
+                return;
+            }
+            
             if (password.length < 6) {
-                alert('❌ Password must be at least 6 characters long');
+                showInlineError(this, 'Password must be at least 6 characters long');
                 return;
             }
             
             if (password !== confirmPassword) {
-                alert('❌ Passwords do not match');
+                showInlineError(this, 'Passwords do not match');
                 return;
             }
             
@@ -301,17 +402,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
                 
                 if (response.ok) {
-                    alert('✅ ' + data.message);
-                    // Redirect to login page
+                    showInlineSuccess(this, 'Password reset successfully! Redirecting to login...');
+                    
+                    // Redirect to login after 2 seconds
                     setTimeout(() => {
-                        window.location.href = 'login.html';
+                        window.location.href = '/login';
                     }, 2000);
                 } else {
-                    alert('❌ ' + (data.message || 'Failed to reset password'));
+                    showInlineError(this, data.message || 'Failed to reset password');
                 }
             } catch (error) {
                 console.error('Reset password error:', error);
-                alert('❌ Network error. Please check your connection and try again.');
+                showInlineError(this, 'Network error. Please check your connection and try again.');
             } finally {
                 // Reset button
                 submitButton.disabled = false;
@@ -320,6 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
 // --- Utility Functions for Token Handling ---
 
 /**
@@ -450,109 +553,6 @@ function logout() {
     window.location.href = 'login.html';
 }
 
-// --- UI Feedback Helpers ---
-
-function removeExistingMessages() {
-    if (messageContainer) {
-        messageContainer.innerHTML = '';
-    } else {
-        const existingMessages = loginForm?.querySelectorAll('.alert-message');
-        existingMessages?.forEach(msg => msg.remove());
-    }
-}
-
-function displayMessage(message, type) {
-    removeExistingMessages();
-
-    const targetElement = messageContainer || loginForm;
-    if (!targetElement) return;
-
-    const iconClass = type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
-    const bgClass = type === 'error' ? 'bg-red-500/10 border border-red-500/20 text-red-700' : 'bg-green-500/10 border border-green-500/20 text-green-700';
-
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `${bgClass} px-4 py-3 rounded-lg mb-4 alert-message`;
-    messageDiv.innerHTML = `
-        <div class="flex items-center">
-            <i class="${iconClass} mr-2"></i>
-            <span>${message}</span>
-        </div>
-    `;
-    
-    targetElement.insertBefore(messageDiv, targetElement.firstChild);
-}
-
-const showError = (message) => displayMessage(message, 'error');
-const showSuccess = (message) => displayMessage(message, 'success');
-
-// --- Login Handler (Only runs on login.html) ---
-
-function setLoading(loading) {
-    if (loginButton) {
-        loginButton.disabled = loading;
-        buttonText?.classList.toggle('hidden', loading);
-        loadingSpinner?.classList.toggle('hidden', !loading);
-    }
-}
-
-async function handleLogin(e) {
-    e.preventDefault();
-    
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-
-    if (!email || !password) {
-        showError('Please fill in all fields');
-        return;
-    }
-
-    setLoading(true);
-
-    try {
-        console.log('Attempting login to:', `${API_BASE_URL}/auth/login`);
-        
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ email, password })
-        });
-
-        // Check if response is JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            const text = await response.text();
-            console.error('Non-JSON response:', text);
-            throw new Error(`Server error: ${response.status} ${response.statusText}`);
-        }
-
-        const data = await response.json();
-
-        if (response.ok) {
-            localStorage.setItem('adminToken', data.token);
-            localStorage.setItem('adminData', JSON.stringify(data.admin));
-            
-            showSuccess('Login successful! Redirecting...');
-            
-            setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 1000);
-        } else {
-            showError(data.message || `Login failed (${response.status}). Check your credentials.`);
-        }
-    } catch (error) {
-        console.error('Login error:', error);
-        if (error.message.includes('Failed to fetch')) {
-            showError('Login failed: Could not connect to the server. Please check if the server is running.');
-        } else {
-            showError(`Login failed: ${error.message}`);
-        }
-    } finally {
-        setLoading(false);
-    }
-}
 // Real-time username validation
 document.addEventListener('DOMContentLoaded', function() {
     const usernameInput = document.getElementById('registerUsername');
@@ -664,8 +664,6 @@ window.getAuthHeaders = getAuthHeaders;
 window.logout = logout;
 window.checkAuth = checkAuth;
 window.isValidToken = isValidToken;
-window.showError = showError;
-window.showSuccess = showSuccess;
 window.clearAuthData = clearAuthData;
 window.API_BASE_URL = API_BASE_URL; // Expose for debugging
 
@@ -676,3 +674,78 @@ document.addEventListener('click', function(e) {
         logout();
     }
 });
+
+// Add this CSS dynamically for animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .animate-shake {
+        animation: shake 0.5s ease-in-out;
+    }
+    
+    .animate-slideDown {
+        animation: slideDown 0.3s ease-out;
+    }
+    
+    /* Responsive message styles */
+    .form-error-message,
+    .form-success-message {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    @media (max-width: 640px) {
+        .form-error-message,
+        .form-success-message {
+            padding: 0.75rem;
+            margin-top: 1rem;
+        }
+        
+        .form-error-message .flex,
+        .form-success-message .flex {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-error-message h4,
+        .form-success-message h4 {
+            font-size: 0.875rem;
+        }
+        
+        .form-error-message p,
+        .form-success-message p {
+            font-size: 0.75rem;
+            line-height: 1.2;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .form-error-message,
+        .form-success-message {
+            padding: 0.5rem;
+        }
+        
+        .form-error-message .flex,
+        .form-success-message .flex {
+            gap: 0.25rem;
+        }
+    }
+`;
+document.head.appendChild(style);

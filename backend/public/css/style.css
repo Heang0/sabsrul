@@ -760,3 +760,30 @@ body.no-scroll {
         word-break: break-all;
     }
 }
+/* Ensure form containers are responsive */
+.form-container {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+@media (max-width: 640px) {
+    .form-container {
+        max-width: 100%;
+        padding: 0 0.5rem;
+    }
+}
+
+/* Make sure form elements are responsive */
+form {
+    width: 100%;
+}
+
+form input, 
+form button, 
+form select, 
+form textarea {
+    width: 100%;
+    box-sizing: border-box;
+}

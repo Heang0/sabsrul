@@ -21,7 +21,6 @@
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
     <style>
         .form-container {
             transition: all 0.3s ease;
@@ -52,56 +51,79 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Ensure proper input field sizing */
+        .input-container {
+            position: relative;
+            width: 100%;
+        }
+        .input-container input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .input-container .icon-left {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+        .input-container .icon-right {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center px-4">
-    <div class="max-w-md w-full">
+<body class="bg-gray-50 min-h-screen flex items-center justify-center px-4 py-8">
+    <div class="w-full max-w-md mx-auto">
         <!-- Back to Home -->
         <div class="text-center mb-6">
-            <a href="index.html" class="inline-flex items-center text-gray-600 hover:text-gray-900 transition duration-200 text-sm sm:text-base">
+            <a href="/" class="inline-flex items-center text-gray-600 hover:text-gray-900 transition duration-200 text-sm">
                 <i class="fas fa-arrow-left mr-2"></i>
                 Back to SabSrul
             </a>
         </div>
 
         <!-- Auth Card -->
-        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden w-full">
             <!-- Header -->
             <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6 text-center">
-                <i class="fas fa-user text-white text-3xl sm:text-4xl mb-4"></i>
-                <h1 class="text-xl sm:text-2xl font-bold text-white">Welcome to SabSrul</h1>
-                <p class="text-purple-200 mt-2 text-sm sm:text-base">Join our community</p>
+                <i class="fas fa-user text-white text-3xl mb-3"></i>
+                <h1 class="text-xl font-bold text-white">Welcome to SabSrul</h1>
+                <p class="text-purple-200 mt-1 text-sm">Join our community</p>
             </div>
 
             <!-- Tabs -->
             <div class="flex border-b border-gray-200">
-                <button id="loginTab" class="flex-1 py-4 text-sm sm:text-base font-medium text-center tab-active transition duration-200">
+                <button id="loginTab" class="flex-1 py-3 text-sm font-medium text-center tab-active transition duration-200">
                     Sign In
                 </button>
-                <button id="registerTab" class="flex-1 py-4 text-sm sm:text-base font-medium text-center text-gray-600 hover:text-gray-900 transition duration-200">
+                <button id="registerTab" class="flex-1 py-3 text-sm font-medium text-center text-gray-600 hover:text-gray-900 transition duration-200">
                     Sign Up
                 </button>
             </div>
 
             <!-- Login Form -->
-            <div id="loginForm" class="form-container active-form p-4 sm:p-6">
-                <form id="userLoginForm">
+            <div id="loginForm" class="form-container active-form p-5">
+                <form id="userLoginForm" class="w-full">
                     <div class="space-y-4">
                         <!-- Email Input -->
                         <div>
                             <label for="loginEmail" class="block text-sm font-medium text-gray-700 mb-2">
                                 Email Address
                             </label>
-                            <div class="relative">
+                            <div class="input-container">
                                 <input 
                                     type="email" 
                                     id="loginEmail" 
                                     name="email"
-                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 text-sm sm:text-base"
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 text-sm"
                                     placeholder="your@email.com"
                                     required
                                 >
-                                <i class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                <i class="fas fa-envelope icon-left"></i>
                             </div>
                         </div>
 
@@ -110,29 +132,29 @@
                             <label for="loginPassword" class="block text-sm font-medium text-gray-700 mb-2">
                                 Password
                             </label>
-                            <div class="relative">
+                            <div class="input-container">
                                 <input 
                                     type="password" 
                                     id="loginPassword" 
                                     name="password"
-                                    class="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 text-sm sm:text-base"
+                                    class="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 text-sm"
                                     placeholder="Enter your password"
                                     required
                                 >
-                                <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                                <button type="button" id="toggleLoginPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-lock icon-left"></i>
+                                <button type="button" id="toggleLoginPassword" class="icon-right bg-transparent border-none cursor-pointer hover:text-gray-700">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
                         </div>
 
                         <!-- Remember Me & Forgot Password -->
-                        <div class="flex items-center justify-between flex-wrap gap-2">
-                            <div class="flex items-center">
-                                <input type="checkbox" id="rememberMe" class="rounded border-gray-300 text-purple-600 focus:ring-purple-500">
-                                <label for="rememberMe" class="ml-2 text-sm text-gray-600">Remember me</label>
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="flex items-center space-x-2">
+                                <input type="checkbox" id="rememberMe" class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                                <label for="rememberMe" class="text-gray-600 whitespace-nowrap">Remember me</label>
                             </div>
-                            <a href="forgot-password.html" class="text-sm text-purple-600 hover:text-purple-700">
+                            <a href="/forgot-password" class="text-purple-600 hover:text-purple-700 whitespace-nowrap">
                                 Forgot password?
                             </a>
                         </div>
@@ -141,151 +163,150 @@
                         <button 
                             type="submit"
                             id="loginButton"
-                            class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition duration-200 font-semibold text-sm sm:text-base"
+                            class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition duration-200 font-semibold text-sm relative"
                         >
                             <span id="loginButtonText">Sign In</span>
-                            <div id="loginLoadingSpinner" class="hidden loading-spinner mx-auto mt-2"></div>
+                            <div id="loginLoadingSpinner" class="hidden loading-spinner absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
                         </button>
                     </div>
                 </form>
 
                 <!-- Admin Login Link -->
-                <div class="mt-6 text-center">
+                <div class="mt-5 text-center">
                     <p class="text-gray-600 text-sm">
                         Admin? 
-                        <a href="admin-login.html" class="text-purple-600 hover:text-purple-700 font-semibold">
+                        <a href="/admin-login" class="text-purple-600 hover:text-purple-700 font-semibold">
                             Access Admin Panel
                         </a>
                     </p>
                 </div>
             </div>
 
-                                <!-- Register Form -->
-                <div id="registerForm" class="form-container hidden-form p-4 sm:p-6">
-                    <form id="userRegisterForm">
-                        <div class="space-y-4">
-                        
-                            <!-- Username Input with Validation -->
-                                    <div>
-                                        <label for="registerUsername" class="block text-sm font-medium text-gray-700 mb-2">
-                                            Username
-                                        </label>
-                                        <div class="relative">
-                                            <input 
-                                                type="text" 
-                                                id="registerUsername" 
-                                                name="username"
-                                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 text-sm sm:text-base username-input"
-                                                placeholder="zanejammy_01 or zanejammy01"
-                                                required
-                                                minlength="3"
-                                                maxlength="30"
-                                                pattern="[a-zA-Z0-9_]+"
-                                                title="Only letters, numbers, and underscores allowed (no spaces)"
-                                            >
-                                            <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                                            <div id="usernameAvailability" class="absolute right-3 top-1/2 transform -translate-y-1/2 hidden">
-                                                <i class="fas fa-check text-green-500"></i>
-                                            </div>
-                                        </div>
-                                        <p class="text-xs text-gray-500 mt-1">
-                                            • 3-30 characters • Letters, numbers, and underscores only • No spaces
-                                        </p>
-                                        <p id="usernameError" class="text-xs text-red-500 mt-1 hidden"></p>
-                                        <p id="usernameSuccess" class="text-xs text-green-500 mt-1 hidden"></p>
-                                    </div>
-
-                            <!-- Email -->
-                            <div>
-                                <label for="registerEmail" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Email Address
-                                </label>
-                                <div class="relative">
-                                    <input 
-                                        type="email" 
-                                        id="registerEmail" 
-                                        name="email"
-                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 text-sm sm:text-base"
-                                        placeholder="your@email.com"
-                                        required
-                                    >
-                                    <i class="fas fa-envelope absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            <!-- Register Form -->
+            <div id="registerForm" class="form-container hidden-form p-5">
+                <form id="userRegisterForm" class="w-full">
+                    <div class="space-y-4">
+                        <!-- Username Input with Validation -->
+                        <div>
+                            <label for="registerUsername" class="block text-sm font-medium text-gray-700 mb-2">
+                                Username
+                            </label>
+                            <div class="input-container">
+                                <input 
+                                    type="text" 
+                                    id="registerUsername" 
+                                    name="username"
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 text-sm username-input"
+                                    placeholder="zanejammy_01 or zanejammy01"
+                                    required
+                                    minlength="3"
+                                    maxlength="30"
+                                    pattern="[a-zA-Z0-9_]+"
+                                    title="Only letters, numbers, and underscores allowed (no spaces)"
+                                >
+                                <i class="fas fa-user icon-left"></i>
+                                <div id="usernameAvailability" class="icon-right hidden">
+                                    <i class="fas fa-check text-green-500"></i>
                                 </div>
                             </div>
-
-                            <!-- Password -->
-                            <div>
-                                <label for="registerPassword" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Password
-                                </label>
-                                <div class="relative">
-                                    <input 
-                                        type="password" 
-                                        id="registerPassword" 
-                                        name="password"
-                                        class="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 text-sm sm:text-base"
-                                        placeholder="Create a password"
-                                        required
-                                        minlength="6"
-                                    >
-                                    <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                                    <button type="button" id="toggleRegisterPassword" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                                <p class="text-xs text-gray-500 mt-1">Must be at least 6 characters long</p>
-                            </div>
-
-                            <!-- Confirm Password -->
-                            <div>
-                                <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Confirm Password
-                                </label>
-                                <div class="relative">
-                                    <input 
-                                        type="password" 
-                                        id="confirmPassword" 
-                                        name="confirmPassword"
-                                        class="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 text-sm sm:text-base"
-                                        placeholder="Confirm your password"
-                                        required
-                                    >
-                                    <i class="fas fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                                </div>
-                            </div>
-
-                            <!-- Terms Agreement -->
-                            <div class="flex items-start space-x-2">
-                                <input type="checkbox" id="agreeTerms" class="rounded border-gray-300 text-purple-600 focus:ring-purple-500 mt-1" required>
-                                <label for="agreeTerms" class="text-sm text-gray-600">
-                                    I am 18+ years old and agree to the 
-                                    <a href="terms-privacy.html" class="text-purple-600 hover:text-purple-700 font-semibold" target="_blank">Terms of Service & Privacy Policy</a>
-                                </label>
-                            </div>
-
-                            <!-- Age Verification Warning -->
-                            <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
-                                <div class="flex items-start">
-                                    <i class="fas fa-exclamation-triangle text-red-500 mt-0.5 mr-2 text-sm"></i>
-                                    <p class="text-red-700 text-xs">
-                                        <strong>Adult Content Warning:</strong> This platform contains explicit content restricted to users 18 years of age or older. 
-                                        By registering, you confirm you meet the age requirement.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <!-- Submit Button -->
-                            <button 
-                                type="submit"
-                                id="registerButton"
-                                class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition duration-200 font-semibold text-sm sm:text-base"
-                            >
-                                <span id="registerButtonText">Confirm I'm 18+ & Create Account</span>
-                                <div id="registerLoadingSpinner" class="hidden loading-spinner mx-auto mt-2"></div>
-                            </button>
+                            <p class="text-xs text-gray-500 mt-1">
+                                • 3-30 characters • Letters, numbers, and underscores only • No spaces
+                            </p>
+                            <p id="usernameError" class="text-xs text-red-500 mt-1 hidden"></p>
+                            <p id="usernameSuccess" class="text-xs text-green-500 mt-1 hidden"></p>
                         </div>
-                    </form>
-                </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label for="registerEmail" class="block text-sm font-medium text-gray-700 mb-2">
+                                Email Address
+                            </label>
+                            <div class="input-container">
+                                <input 
+                                    type="email" 
+                                    id="registerEmail" 
+                                    name="email"
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 text-sm"
+                                    placeholder="your@email.com"
+                                    required
+                                >
+                                <i class="fas fa-envelope icon-left"></i>
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div>
+                            <label for="registerPassword" class="block text-sm font-medium text-gray-700 mb-2">
+                                Password
+                            </label>
+                            <div class="input-container">
+                                <input 
+                                    type="password" 
+                                    id="registerPassword" 
+                                    name="password"
+                                    class="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 text-sm"
+                                    placeholder="Create a password"
+                                    required
+                                    minlength="6"
+                                >
+                                <i class="fas fa-lock icon-left"></i>
+                                <button type="button" id="toggleRegisterPassword" class="icon-right bg-transparent border-none cursor-pointer hover:text-gray-700">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Must be at least 6 characters long</p>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div>
+                            <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">
+                                Confirm Password
+                            </label>
+                            <div class="input-container">
+                                <input 
+                                    type="password" 
+                                    id="confirmPassword" 
+                                    name="confirmPassword"
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 text-sm"
+                                    placeholder="Confirm your password"
+                                    required
+                                >
+                                <i class="fas fa-lock icon-left"></i>
+                            </div>
+                        </div>
+
+                        <!-- Terms Agreement -->
+                        <div class="flex items-start space-x-2">
+                            <input type="checkbox" id="agreeTerms" class="rounded border-gray-300 text-purple-600 focus:ring-purple-500 mt-1 flex-shrink-0" required>
+                            <label for="agreeTerms" class="text-sm text-gray-600">
+                                I am 18+ years old and agree to the 
+                                <a href="/terms-privacy" class="text-purple-600 hover:text-purple-700 font-semibold" target="_blank">Terms of Service & Privacy Policy</a>
+                            </label>
+                        </div>
+
+                        <!-- Age Verification Warning -->
+                        <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <div class="flex items-start">
+                                <i class="fas fa-exclamation-triangle text-red-500 mt-0.5 mr-2 text-sm flex-shrink-0"></i>
+                                <p class="text-red-700 text-xs">
+                                    <strong>Adult Content Warning:</strong> This platform contains explicit content restricted to users 18 years of age or older. 
+                                    By registering, you confirm you meet the age requirement.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button 
+                            type="submit"
+                            id="registerButton"
+                            class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition duration-200 font-semibold text-sm relative"
+                        >
+                            <span id="registerButtonText">Confirm I'm 18+ & Create Account</span>
+                            <div id="registerLoadingSpinner" class="hidden loading-spinner absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 

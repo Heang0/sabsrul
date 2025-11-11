@@ -20,6 +20,7 @@ const sendPasswordResetEmail = async (email, resetToken) => {
         const clientURL = process.env.CLIENT_URL || 'https://sabsrul.onrender.com';
         const resetLink = `${clientURL}/reset-password.html?token=${resetToken}`;
 
+        console.log('🔄 Trying Brevo SMTP...');
         const transporter = createBrevoTransporter();
         
         const mailOptions = {

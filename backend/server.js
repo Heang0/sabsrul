@@ -91,9 +91,52 @@ app.get('/profile', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'profile.html'));
 });
 
-// ... add other specific routes as needed
+// 🔥 ADD THESE NEW EXTENSIONLESS URL ROUTES:
+app.get('/register', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'register.html'));
+});
 
-// --- 6. Frontend Catch-All Route ---
+app.get('/forgot-password', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'forgot-password.html'));
+});
+
+app.get('/reset-password', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'reset-password.html'));
+});
+
+app.get('/admin-login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin-login.html'));
+});
+
+app.get('/upload', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'upload.html'));
+});
+
+app.get('/videos', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'videos.html'));
+});
+
+app.get('/categories', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'categories.html'));
+});
+
+app.get('/analytics', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'analytics.html'));
+});
+
+app.get('/terms-privacy', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'terms-privacy.html'));
+});
+
+app.get('/delete-account', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'delete-account.html'));
+});
+
+app.get('/confirm-deletion', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'confirm-deletion.html'));
+});
+
+
 
 // This serves the frontend application for all non-API requests.
 // NOTE: For better SPA routing, you might need to adjust this, 

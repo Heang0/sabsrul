@@ -246,7 +246,9 @@ exports.forgotPassword = async (req, res) => {
             // For security, don't reveal if email exists or not
             return res.json({
                 success: true,
-                message: 'If an account with that email exists, a password reset link has been sent to your email.'
+                message: 'If an account with that email exists, a password reset link has been generated.',
+                resetLink: null,
+                emailSent: false
             });
         }
 
@@ -254,49 +256,22 @@ exports.forgotPassword = async (req, res) => {
         const resetToken = user.generatePasswordReset();
         await user.save();
 
-        console.log(`🔐 Generated reset token for ${email}: ${resetToken}`);
+        console.log(`🎯 INSTANT RESET: Generated token for ${email}`);
 
         // Create reset link
         const clientURL = process.env.CLIENT_URL || 'https://sabsrul.onrender.com';
         const resetLink = `${clientURL}/reset-password.html?token=${resetToken}`;
         
-        console.log('🔗 RESET LINK:', resetLink);
+        console.log('🔗 RESET LINK READY:', resetLink);
 
-        // 🔥 TRY TO SEND EMAIL IMMEDIATELY (not in background)
-        let emailSent = false;
-        let emailError = null;
-        
-        try {
-            console.log('📧 ATTEMPTING TO SEND REAL EMAIL...');
-            emailSent = await sendPasswordResetEmail(email, resetToken);
-            
-            if (emailSent) {
-                console.log('🎉 EMAIL SENT SUCCESSFULLY to:', email);
-            } else {
-                console.log('❌ EMAIL FAILED for:', email);
-                emailError = 'Email service temporarily unavailable';
-            }
-        } catch (error) {
-            console.error('❌ Email sending error:', error.message);
-            emailError = error.message;
-        }
-
-        // Return response based on email status
-        if (emailSent) {
-            res.json({
-                success: true,
-                message: 'Password reset link has been sent to your email address.',
-                emailSent: true
-            });
-        } else {
-            res.json({
-                success: true,
-                message: 'Password reset link generated. Check your email (if not received, use the link below).',
-                resetLink: resetLink,
-                emailSent: false,
-                emailError: emailError
-            });
-        }
+        // 🎯 ALWAYS RETURN THE RESET LINK FOR INSTANT ACCESS
+        res.json({
+            success: true,
+            message: 'Password reset link generated successfully!',
+            resetLink: resetLink,
+            emailSent: false, // Always false since we're showing link directly
+            instantAccess: true // New flag for frontend
+        });
 
     } catch (error) {
         console.error('Forgot password error:', error);

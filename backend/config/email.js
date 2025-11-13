@@ -5,29 +5,40 @@ console.log('🔧 Configuring email transporter...');
 if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     console.log('❌ Email credentials not found in environment variables');
     console.log('Please set EMAIL_USER and EMAIL_PASS in your Render environment variables');
-    console.log('Current EMAIL_USER:', process.env.EMAIL_USER ? 'Set' : 'Not set');
 }
 
 let transporter;
 
 try {
-    // Create transporter with better error handling
+    // Create transporter with Render-compatible settings
     transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false, // Use TLS
         auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS
         },
-        // Add timeout settings to prevent hanging
-        connectionTimeout: 10000,
-        greetingTimeout: 10000,
-        socketTimeout: 10000
+        // Render-specific settings to prevent timeouts
+        connectionTimeout: 30000, // 30 seconds
+        greetingTimeout: 30000,   // 30 seconds
+        socketTimeout: 30000,     // 30 seconds
+        // Additional settings for better reliability
+        tls: {
+            rejectUnauthorized: false
+        },
+        debug: true, // Enable debug logging
+        logger: true // Enable logger
     });
 
     // Verify connection configuration
     transporter.verify(function (error, success) {
         if (error) {
             console.log('❌ Email configuration error:', error.message);
+            console.log('💡 Troubleshooting tips for Render:');
+            console.log('1. Check if EMAIL_USER and EMAIL_PASS are set in Render environment variables');
+            console.log('2. Make sure you\'re using App Password (16 characters) not regular password');
+            console.log('3. Try using port 465 with secure: true');
         } else {
             console.log('✅ Email server is ready to send messages');
             console.log('📧 Using email:', process.env.EMAIL_USER);

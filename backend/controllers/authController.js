@@ -246,7 +246,7 @@ exports.forgotPassword = async (req, res) => {
             return res.json({
                 success: true,
                 message: 'If an account with that email exists, a password reset link has been sent to your email.',
-                emailSent: true // Changed to true for consistency
+                emailSent: true
             });
         }
 
@@ -262,7 +262,7 @@ exports.forgotPassword = async (req, res) => {
         
         console.log('🔗 RESET LINK:', resetLink);
 
-        // 🎯 SEND ACTUAL EMAIL INSTEAD OF RETURNING LINK
+        // Try to send email
         const emailSent = await sendPasswordResetEmail(email, resetLink);
 
         if (emailSent) {
@@ -273,10 +273,14 @@ exports.forgotPassword = async (req, res) => {
                 emailSent: true
             });
         } else {
-            console.log(`❌ Failed to send email to: ${email}`);
-            res.status(500).json({
-                success: false,
-                message: 'Failed to send password reset email. Please try again later.'
+            console.log(`❌ Email failed, showing reset link as fallback`);
+            // Fallback: return the reset link for manual access
+            res.json({
+                success: true,
+                message: 'Email service temporarily unavailable. Use the reset link below:',
+                resetLink: resetLink,
+                emailSent: false,
+                fallback: true
             });
         }
 
@@ -288,7 +292,6 @@ exports.forgotPassword = async (req, res) => {
         });
     }
 };
-
 exports.resetPassword = async (req, res) => {
     try {
         const { token } = req.params;

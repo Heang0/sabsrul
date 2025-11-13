@@ -227,7 +227,6 @@ exports.getMe = async (req, res) => {
     }
 };
 
-
 exports.forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
@@ -246,9 +245,8 @@ exports.forgotPassword = async (req, res) => {
             // For security, don't reveal if email exists or not
             return res.json({
                 success: true,
-                message: 'If an account with that email exists, a password reset link has been generated.',
-                resetLink: null,
-                emailSent: false
+                message: 'If an account with that email exists, a password reset link has been sent to your email.',
+                emailSent: true // Changed to true for consistency
             });
         }
 
@@ -256,22 +254,31 @@ exports.forgotPassword = async (req, res) => {
         const resetToken = user.generatePasswordReset();
         await user.save();
 
-        console.log(`🎯 INSTANT RESET: Generated token for ${email}`);
+        console.log(`📧 SENDING EMAIL: Password reset for ${email}`);
 
         // Create reset link
         const clientURL = process.env.CLIENT_URL || 'https://sabsrul.onrender.com';
         const resetLink = `${clientURL}/reset-password.html?token=${resetToken}`;
         
-        console.log('🔗 RESET LINK READY:', resetLink);
+        console.log('🔗 RESET LINK:', resetLink);
 
-        // 🎯 ALWAYS RETURN THE RESET LINK FOR INSTANT ACCESS
-        res.json({
-            success: true,
-            message: 'Password reset link generated successfully!',
-            resetLink: resetLink,
-            emailSent: false, // Always false since we're showing link directly
-            instantAccess: true // New flag for frontend
-        });
+        // 🎯 SEND ACTUAL EMAIL INSTEAD OF RETURNING LINK
+        const emailSent = await sendPasswordResetEmail(email, resetLink);
+
+        if (emailSent) {
+            console.log(`✅ Password reset email sent to: ${email}`);
+            res.json({
+                success: true,
+                message: 'Password reset link has been sent to your email! Please check your inbox (and spam folder).',
+                emailSent: true
+            });
+        } else {
+            console.log(`❌ Failed to send email to: ${email}`);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to send password reset email. Please try again later.'
+            });
+        }
 
     } catch (error) {
         console.error('Forgot password error:', error);
@@ -281,6 +288,7 @@ exports.forgotPassword = async (req, res) => {
         });
     }
 };
+
 exports.resetPassword = async (req, res) => {
     try {
         const { token } = req.params;

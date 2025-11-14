@@ -245,7 +245,7 @@ exports.forgotPassword = async (req, res) => {
             // For security, don't reveal if email exists or not
             return res.json({
                 success: true,
-                message: 'If an account with that email exists, a password reset link has been sent to your email.',
+                message: 'If an account with that email exists, a password reset link has been sent.',
                 emailSent: true
             });
         }
@@ -254,33 +254,29 @@ exports.forgotPassword = async (req, res) => {
         const resetToken = user.generatePasswordReset();
         await user.save();
 
-        console.log(`📧 SENDING EMAIL: Password reset for ${email}`);
+        console.log(`📧 SENDING RESET EMAIL to: ${email}`);
 
-        // Create reset link
+        // Create reset link that goes directly to reset password page
         const clientURL = process.env.CLIENT_URL || 'https://sabsrul.onrender.com';
         const resetLink = `${clientURL}/reset-password.html?token=${resetToken}`;
         
         console.log('🔗 RESET LINK:', resetLink);
 
-        // Try to send email
+        // Send email with reset link
         const emailSent = await sendPasswordResetEmail(email, resetLink);
 
         if (emailSent) {
             console.log(`✅ Password reset email sent to: ${email}`);
             res.json({
                 success: true,
-                message: 'Password reset link has been sent to your email! Please check your inbox (and spam folder).',
+                message: 'Password reset link has been sent to your email! Check your inbox and click the link to reset your password.',
                 emailSent: true
             });
         } else {
-            console.log(`❌ Email failed, showing reset link as fallback`);
-            // Fallback: return the reset link for manual access
-            res.json({
-                success: true,
-                message: 'Email service temporarily unavailable. Use the reset link below:',
-                resetLink: resetLink,
-                emailSent: false,
-                fallback: true
+            console.log(`❌ Failed to send email to: ${email}`);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to send password reset email. Please try again later.'
             });
         }
 
@@ -292,6 +288,7 @@ exports.forgotPassword = async (req, res) => {
         });
     }
 };
+
 exports.resetPassword = async (req, res) => {
     try {
         const { token } = req.params;

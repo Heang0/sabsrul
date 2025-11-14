@@ -12,13 +12,11 @@ const userSchema = new mongoose.Schema({
     maxlength: 30,
     validate: {
       validator: function(username) {
-        // Allow: letters, numbers, underscores, no spaces
-        // Format: zanejammy_01 or zanejammy01
         return /^[a-zA-Z0-9_]+$/.test(username);
       },
       message: 'Username can only contain letters, numbers, and underscores (no spaces)'
     },
-    lowercase: true // Store usernames in lowercase for case-insensitive uniqueness
+    lowercase: true
   },
   email: {
     type: String,
@@ -47,6 +45,9 @@ const userSchema = new mongoose.Schema({
   },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
+  // NEW: Email confirmation for password reset
+  resetConfirmToken: String,
+  resetConfirmExpires: Date,
   watchLater: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Video'
@@ -83,9 +84,10 @@ userSchema.pre('save', async function(next) {
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
+
 userSchema.index({ username: 1 }, { 
   unique: true,
-  collation: { locale: 'en', strength: 2 } // Case insensitive
+  collation: { locale: 'en', strength: 2 }
 });
 
 // Compare password method
@@ -100,5 +102,11 @@ userSchema.methods.generatePasswordReset = function() {
   return this.resetPasswordToken;
 };
 
-// MAKE SURE ONLY THIS EXPORT EXISTS
+// NEW: Generate email confirmation token for reset
+userSchema.methods.generateResetConfirm = function() {
+  this.resetConfirmToken = crypto.randomBytes(20).toString('hex');
+  this.resetConfirmExpires = Date.now() + 3600000; // 1 hour
+  return this.resetConfirmToken;
+};
+
 module.exports = mongoose.model('User', userSchema);

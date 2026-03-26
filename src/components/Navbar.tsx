@@ -76,7 +76,7 @@ export default function Navbar() {
               height={32}
               className="rounded"
             />
-            <span className="text-xl font-bold text-gray-900 hidden sm:block">
+            <span className="text-lg sm:text-xl font-bold text-gray-900">
               SabSrul
             </span>
           </Link>

@@ -405,43 +405,16 @@ export default function VideoPage() {
         </div>
 
         {/* Related Videos */}
-        <div className="space-y-4">
+        <div className="lg:col-span-1">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Related Videos</h2>
           {relatedVideos.length === 0 ? (
             <p className="text-gray-500">No related videos found</p>
           ) : (
-            relatedVideos.map((relatedVideo) => (
-              <Link
-                key={relatedVideo._id}
-                href={`/video/${relatedVideo.shortId}`}
-                className="flex gap-3 group"
-              >
-                <div className="relative aspect-video w-32 sm:w-40 flex-shrink-0">
-                  <Image
-                    src={relatedVideo.thumbnail}
-                    alt={relatedVideo.title}
-                    fill
-                    className="object-cover rounded-lg group-hover:opacity-80 transition-opacity"
-                    unoptimized
-                  />
-                  <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1 py-0.5 rounded">
-                    {Math.floor(relatedVideo.duration / 60)}:
-                    {(relatedVideo.duration % 60).toString().padStart(2, '0')}
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-gray-900 font-medium text-sm sm:text-base line-clamp-2 group-hover:text-gray-600 transition-colors">
-                    {relatedVideo.title}
-                  </h3>
-                  <p className="text-gray-500 text-xs sm:text-sm mt-1">
-                    Admin
-                  </p>
-                  <p className="text-gray-500 text-xs sm:text-sm">
-                    {formatViews(relatedVideo.views)} • {formatDate(relatedVideo.createdAt)}
-                  </p>
-                </div>
-              </Link>
-            ))
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4">
+              {relatedVideos.map((relatedVideo) => (
+                <VideoCard key={relatedVideo._id} video={relatedVideo} />
+              ))}
+            </div>
           )}
         </div>
       </div>

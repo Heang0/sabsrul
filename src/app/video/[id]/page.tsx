@@ -209,12 +209,18 @@ export default function VideoPage() {
         {/* Main Video */}
         <div className="lg:col-span-2">
           {/* Video Player */}
-          <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
+          <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden w-full">
             <video
               src={video.videoUrl}
               controls
+              controlsList="nodownload"
               className="w-full h-full"
               poster={video.thumbnail}
+              playsInline
+              webkit-playsinline="true"
+              x5-video-player-type="h5"
+              x5-video-player-fullscreen="true"
+              style={{ maxWidth: '100%', maxHeight: '100%' }}
             />
           </div>
 

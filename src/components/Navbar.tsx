@@ -3,12 +3,48 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Navbar() {
-  const { user, logout, loading } = useAuth();
+  const { user, logout, loading, signInWithGoogle } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+
+  // Fetch user avatar from MongoDB
+  useEffect(() => {
+    if (user) {
+      fetch(`/api/users?uid=${user.uid}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.user?.avatar) {
+            setUserAvatar(data.user.avatar);
+          } else {
+            setUserAvatar(user.photoURL);
+          }
+        })
+        .catch(() => setUserAvatar(user.photoURL));
+    }
+  }, [user]);
+
+  // Check if user is admin
+  useEffect(() => {
+    if (user) {
+      fetch(`/api/auth/me?uid=${user.uid}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.user?.role === 'admin') {
+            setIsAdmin(true);
+          } else {
+            setIsAdmin(false);
+          }
+        })
+        .catch(() => setIsAdmin(false));
+    } else {
+      setIsAdmin(false);
+    }
+  }, [user]);
 
   const handleSignIn = async () => {
     try {
@@ -35,13 +71,13 @@ export default function Navbar() {
           <Link href="/" className="flex items-center gap-2">
             <Image
               src="/images/sabsrul.png"
-              alt="VideoPlatform"
+              alt="SabSrul"
               width={32}
               height={32}
               className="rounded"
             />
             <span className="text-xl font-bold text-gray-900 hidden sm:block">
-              VideoPlatform
+              SabSrul
             </span>
           </Link>
 
@@ -68,10 +104,10 @@ export default function Navbar() {
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-2 hover:bg-gray-100 rounded-full p-1 pr-3 transition-colors"
                 >
-                  {user.photoURL ? (
+                  {userAvatar ? (
                     <img
                       className="w-8 h-8 rounded-full"
-                      src={user.photoURL}
+                      src={userAvatar}
                       alt={user.displayName || 'User'}
                     />
                   ) : (
@@ -97,13 +133,15 @@ export default function Navbar() {
                     >
                       Profile
                     </Link>
-                    <Link
-                      href="/dashboard"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      onClick={() => setUserMenuOpen(false)}
-                    >
-                      Dashboard
-                    </Link>
+                    {isAdmin && (
+                      <Link
+                        href="/dashboard"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        Dashboard
+                      </Link>
+                    )}
                     <button
                       onClick={handleLogout}
                       className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"

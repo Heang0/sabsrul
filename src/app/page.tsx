@@ -22,12 +22,23 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: '20', // Load 20 videos per page for better performance
+          ...(selectedCategory !== 'all' && { category: selectedCategory }),
+          ...(searchQuery && { search: searchQuery }),
+        });
+
         const [videosRes, categoriesRes] = await Promise.all([
-          fetch(`/api/videos?limit=12&category=${selectedCategory}`),
+          fetch(`/api/videos?${params}`),
           fetch('/api/categories'),
         ]);
 
@@ -35,7 +46,13 @@ export default function HomePage() {
         const categoriesData = await categoriesRes.json();
 
         if (videosData.success) {
-          setVideos(videosData.videos);
+          if (currentPage === 1) {
+            setVideos(videosData.videos);
+          } else {
+            setVideos((prev) => [...prev, ...videosData.videos]);
+          }
+          setTotalPages(videosData.totalPages);
+          setHasMore(currentPage < videosData.totalPages);
         }
 
         if (categoriesData.success) {
@@ -49,10 +66,49 @@ export default function HomePage() {
     };
 
     fetchData();
-  }, [selectedCategory]);
+  }, [currentPage, selectedCategory, searchQuery]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="relative max-w-2xl mx-auto">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+              setVideos([]);
+            }}
+            placeholder="Search videos..."
+            className="w-full px-4 py-3 pl-12 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+          />
+          <svg
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          {searchQuery && (
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setCurrentPage(1);
+                setVideos([]);
+              }}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Categories */}
       <div className="flex gap-2 overflow-x-auto pb-4 mb-6 scrollbar-hide">
         <button
@@ -98,11 +154,45 @@ export default function HomePage() {
           <p className="text-gray-500 text-lg">No videos found</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-          {videos.map((video) => (
-            <VideoCard key={video._id} video={video} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+            {videos.map((video) => (
+              <VideoCard key={video._id} video={video} />
+            ))}
+          </div>
+
+          {/* Load More Button */}
+          {hasMore && (
+            <div className="flex justify-center mt-8">
+              <button
+                onClick={() => setCurrentPage((p) => p + 1)}
+                disabled={loading}
+                className="px-8 py-3 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                    Load More
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Page Info */}
+          {totalPages > 1 && (
+            <p className="text-center text-gray-500 text-sm mt-4">
+              Showing {videos.length} videos • Page {currentPage} of {totalPages}
+            </p>
+          )}
+        </>
       )}
     </div>
   );

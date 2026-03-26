@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VideoPlatform - Watch & Share Videos",
+  title: "SabSrul - Watch & Share Videos",
   description: "Complete video streaming platform with user authentication, playlists, and admin management",
   icons: {
     icon: [

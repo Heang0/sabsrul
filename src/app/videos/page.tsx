@@ -24,6 +24,7 @@ export default function VideosPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [hasMore, setHasMore] = useState(true);
   const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
@@ -41,8 +42,13 @@ export default function VideosPage() {
         const data = await res.json();
 
         if (data.success) {
-          setVideos(data.videos);
+          if (currentPage === 1) {
+            setVideos(data.videos);
+          } else {
+            setVideos((prev) => [...prev, ...data.videos]);
+          }
           setTotalPages(data.totalPages);
+          setHasMore(currentPage < data.totalPages);
         }
       } catch (error) {
         console.error('Error fetching videos:', error);
@@ -71,37 +77,57 @@ export default function VideosPage() {
   }, []);
 
   return (
-    <div className="max-w-screen-xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <h1 className="text-3xl font-bold text-white">All Videos</h1>
-
-        {/* Search */}
-        <div className="relative">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="relative max-w-2xl mx-auto">
           <input
             type="text"
-            placeholder="Search videos..."
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
+              setVideos([]);
             }}
-            className="w-full md:w-80 px-4 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Search videos..."
+            className="w-full px-4 py-3 pl-12 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
           />
+          <svg
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          {searchQuery && (
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setCurrentPage(1);
+                setVideos([]);
+              }}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Category Filter */}
-      <div className="flex gap-2 overflow-x-auto pb-4 mb-6">
+      {/* Categories */}
+      <div className="flex gap-2 overflow-x-auto pb-4 mb-6 scrollbar-hide">
         <button
           onClick={() => {
             setSelectedCategory('all');
             setCurrentPage(1);
           }}
-          className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+          className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-colors ${
             selectedCategory === 'all'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+              ? 'bg-gray-900 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
           All
@@ -113,10 +139,10 @@ export default function VideosPage() {
               setSelectedCategory(category.slug);
               setCurrentPage(1);
             }}
-            className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+            className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-colors ${
               selectedCategory === category.slug
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                ? 'bg-gray-900 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
             {category.name}
@@ -126,50 +152,59 @@ export default function VideosPage() {
 
       {/* Videos Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="bg-gray-800 rounded-lg overflow-hidden animate-pulse">
-              <div className="aspect-video bg-gray-700" />
-              <div className="p-3 space-y-2">
-                <div className="h-4 bg-gray-700 rounded w-3/4" />
-                <div className="h-3 bg-gray-700 rounded w-1/2" />
+            <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden animate-pulse">
+              <div className="aspect-video bg-gray-200" />
+              <div className="p-2 sm:p-3 space-y-2">
+                <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4" />
+                <div className="h-2 sm:h-3 bg-gray-200 rounded w-1/2" />
               </div>
             </div>
           ))}
         </div>
       ) : videos.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-400 text-lg">No videos found</p>
+          <p className="text-gray-500 text-lg">No videos found</p>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             {videos.map((video) => (
               <VideoCard key={video._id} video={video} />
             ))}
           </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-8">
+          {/* Load More Button */}
+          {hasMore && (
+            <div className="flex justify-center mt-8">
               <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="px-4 py-2 bg-gray-800 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700"
+                onClick={() => setCurrentPage((p) => p + 1)}
+                disabled={loading}
+                className="px-8 py-3 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
               >
-                Previous
-              </button>
-              <span className="px-4 py-2 text-white">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 bg-gray-800 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700"
-              >
-                Next
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                    Load More
+                  </>
+                )}
               </button>
             </div>
+          )}
+
+          {/* Page Info */}
+          {totalPages > 1 && (
+            <p className="text-center text-gray-500 text-sm mt-4">
+              Showing {videos.length} videos • Page {currentPage} of {totalPages}
+            </p>
           )}
         </>
       )}

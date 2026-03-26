@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import VideoCard from '@/components/VideoCard';
 
@@ -18,7 +18,7 @@ interface Video {
   createdAt: string;
 }
 
-export default function VideosPage() {
+function VideosContent() {
   const searchParams = useSearchParams();
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
@@ -246,5 +246,20 @@ export default function VideosPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function VideosPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="animate-pulse space-y-6">
+          <div className="h-12 bg-gray-200 rounded" />
+          <div className="h-64 bg-gray-200 rounded" />
+        </div>
+      </div>
+    }>
+      <VideosContent />
+    </Suspense>
   );
 }

@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import VideoCard from '@/components/VideoCard';
 
 type Tab = 'watch-later' | 'liked' | 'playlists';
 

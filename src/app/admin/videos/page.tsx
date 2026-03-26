@@ -5,10 +5,10 @@ import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
 
 export default function ManageVideosPage() {
-  const [videos, setVideos] = useState([]);
+  const [videos, setVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [editingVideo, setEditingVideo] = useState(null);
+  const [editingVideo, setEditingVideo] = useState<string | null>(null);
   const [editData, setEditData] = useState({ title: '', description: '', category: '' });
 
   useEffect(() => {

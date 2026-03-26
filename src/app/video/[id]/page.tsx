@@ -33,6 +33,9 @@ export default function VideoPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isWatchLater, setIsWatchLater] = useState(false);
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [loadingComments, setLoadingComments] = useState(false);
 
   useEffect(() => {
     if (!shortId) return;
@@ -44,6 +47,7 @@ export default function VideoPage() {
 
         if (data.success) {
           setVideo(data.video);
+          setComments(data.video.comments || []);
 
           // Fetch related videos
           const relatedRes = await fetch(`/api/videos?category=${data.video.category}&limit=5`);
@@ -109,6 +113,52 @@ export default function VideoPage() {
       }
     } catch (error) {
       console.error('Interaction error:', error);
+    }
+  };
+
+  const fetchComments = async () => {
+    if (!video) return;
+    setLoadingComments(true);
+    try {
+      const res = await fetch(`/api/comments?videoId=${video._id}`);
+      const data = await res.json();
+      if (data.success) {
+        setComments(data.comments || []);
+      }
+    } catch (error) {
+      console.error('Fetch comments error:', error);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!user || !video || !newComment.trim()) {
+      alert('Please enter a comment');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          videoId: video._id,
+          uid: user.uid,
+          text: newComment.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setComments([data.comment, ...comments]);
+        setNewComment('');
+        alert('Comment added!');
+      } else {
+        alert(data.message || 'Failed to add comment');
+      }
+    } catch (error) {
+      console.error('Add comment error:', error);
+      alert('Error adding comment');
     }
   };
 
@@ -264,38 +314,85 @@ export default function VideoPage() {
             {/* Comments Section */}
             <div className="mt-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4">
-                Comments <span className="text-gray-500 font-normal">(0)</span>
+                Comments <span className="text-gray-500 font-normal">({comments.length})</span>
               </h3>
-              
+
               {/* Comment Input */}
-              <div className="flex gap-3 mb-6">
-                <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-white font-medium flex-shrink-0">
-                  U
-                </div>
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    placeholder="Add a comment..."
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent text-sm"
-                  />
-                  <div className="flex justify-end mt-2">
-                    <button className="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-lg transition-colors">
-                      Comment
-                    </button>
+              {user ? (
+                <div className="flex gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-white font-medium flex-shrink-0">
+                    {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                  </div>
+                  <div className="flex-1">
+                    <textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Add a comment..."
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent text-sm"
+                      rows={3}
+                    />
+                    <div className="flex justify-end mt-2">
+                      <button
+                        onClick={handleAddComment}
+                        disabled={!newComment.trim()}
+                        className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors"
+                      >
+                        Comment
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {/* No Comments Yet */}
-              <div className="text-center py-8">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
+              ) : (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 text-center">
+                  <p className="text-gray-700 mb-2">Log in to leave a comment</p>
+                  <button
+                    onClick={() => (window.location.href = '/login')}
+                    className="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Log In
+                  </button>
                 </div>
-                <p className="text-gray-500 text-sm">No comments yet</p>
-                <p className="text-gray-400 text-xs mt-1">Be the first to share what you think!</p>
-              </div>
+              )}
+
+              {/* Comments List */}
+              {loadingComments ? (
+                <div className="text-center py-8">
+                  <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin mx-auto" />
+                </div>
+              ) : comments.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-500 text-sm">No comments yet</p>
+                  <p className="text-gray-400 text-xs mt-1">Be the first to share what you think!</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {comments.map((comment: any, index: number) => (
+                    <div key={index} className="flex gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-white font-medium flex-shrink-0">
+                        {comment.avatar ? (
+                          <img src={comment.avatar} alt={comment.username} className="w-10 h-10 rounded-full" />
+                        ) : (
+                          comment.username?.charAt(0).toUpperCase() || 'U'
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <p className="text-sm font-medium text-gray-900">{comment.username}</p>
+                          <p className="text-sm text-gray-700 mt-1">{comment.text}</p>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(comment.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

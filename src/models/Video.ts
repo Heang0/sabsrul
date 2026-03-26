@@ -24,6 +24,13 @@ export interface IVideo extends Document {
   status: 'published' | 'draft';
   fileSize: number;
   uploadedBy: mongoose.Types.ObjectId;
+  comments?: Array<{
+    user: mongoose.Types.ObjectId;
+    username: string;
+    avatar?: string;
+    text: string;
+    createdAt: Date;
+  }>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -107,6 +114,21 @@ const videoSchema = new Schema<IVideo>(
       ref: 'User',
       required: true,
     },
+    comments: [
+      {
+        user: {
+          type: Schema.Types.ObjectId,
+          ref: 'User',
+        },
+        username: String,
+        avatar: String,
+        text: String,
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
     timestamps: true,

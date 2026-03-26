@@ -221,7 +221,7 @@ export default function ProfilePage() {
               {(userData?.avatar || user?.photoURL) ? (
                 <Image
                   src={userData?.avatar || user?.photoURL}
-                  alt={user.displayName || 'User'}
+                  alt={user?.displayName || 'User'}
                   width={100}
                   height={100}
                   className="rounded-full w-24 h-24 sm:w-28 sm:h-28"

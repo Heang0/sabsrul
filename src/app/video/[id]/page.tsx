@@ -307,12 +307,13 @@ export default function VideoPage() {
             {video.tags && video.tags.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-2">
                 {video.tags.map((tag, index) => (
-                  <span
+                  <Link
                     key={index}
-                    className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs sm:text-sm"
+                    href={`/videos?tag=${tag}`}
+                    className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-xs sm:text-sm transition-colors"
                   >
                     #{tag}
-                  </span>
+                  </Link>
                 ))}
               </div>
             )}

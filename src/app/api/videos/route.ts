@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const category = searchParams.get('category');
+    const tag = searchParams.get('tag');
     const search = searchParams.get('search');
 
     const skip = (page - 1) * limit;
@@ -20,6 +21,10 @@ export async function GET(request: NextRequest) {
 
     if (category && category !== 'all') {
       filter.category = category.toLowerCase();
+    }
+
+    if (tag) {
+      filter.tags = tag;
     }
 
     // Add search functionality

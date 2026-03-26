@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import VideoCard from '@/components/VideoCard';
 
 interface Video {
@@ -18,12 +19,14 @@ interface Video {
 }
 
 export default function VideosPage() {
+  const searchParams = useSearchParams();
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [categories, setCategories] = useState<any[]>([]);
 
@@ -31,10 +34,18 @@ export default function VideosPage() {
     const fetchVideos = async () => {
       setLoading(true);
       try {
+        // Get tag from URL
+        const tagParam = searchParams?.get('tag');
+        if (tagParam) {
+          setSelectedTag(tagParam);
+          setSelectedCategory('all');
+        }
+
         const params = new URLSearchParams({
           page: currentPage.toString(),
           limit: '20',
-          ...(selectedCategory !== 'all' && { category: selectedCategory }),
+          ...(selectedCategory !== 'all' && !tagParam && { category: selectedCategory }),
+          ...(tagParam && { tag: tagParam }),
           ...(searchQuery && { search: searchQuery }),
         });
 
@@ -58,7 +69,7 @@ export default function VideosPage() {
     };
 
     fetchVideos();
-  }, [currentPage, selectedCategory, searchQuery]);
+  }, [currentPage, selectedCategory, searchQuery, searchParams]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -78,6 +89,32 @@ export default function VideosPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Tag Filter Indicator */}
+      {selectedTag && (
+        <div className="mb-4 flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-700">Filtering by tag:</span>
+            <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+              #{selectedTag}
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              setSelectedTag(null);
+              setCurrentPage(1);
+              setVideos([]);
+              // Clear URL params
+              const newParams = new URLSearchParams(searchParams?.toString());
+              newParams.delete('tag');
+              window.history.pushState({}, '', `/videos?${newParams.toString()}`);
+            }}
+            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+          >
+            Clear filter
+          </button>
+        </div>
+      )}
+
       {/* Search Bar */}
       <div className="mb-6">
         <div className="relative max-w-2xl mx-auto">

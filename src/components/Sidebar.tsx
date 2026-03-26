@@ -120,7 +120,7 @@ export default function Sidebar({ isOpen = true, onToggle }: SidebarProps) {
                 </svg>
               </div>
               <span className={`text-lg font-bold whitespace-nowrap ${!isOpen && 'hidden'}`}>
-                Admin Panel
+                SabSrul
               </span>
             </div>
             {/* Close button for mobile */}

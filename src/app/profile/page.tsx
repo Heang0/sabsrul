@@ -62,10 +62,38 @@ export default function ProfilePage() {
 
     const fetchUserData = async () => {
       try {
-        const res = await fetch(`/api/users?uid=${user.uid}`);
-        const data = await res.json();
-        if (data.success) {
-          setUserData(data.user);
+        // Fetch user info
+        const userRes = await fetch(`/api/users?uid=${user.uid}`);
+        const userData = await userRes.json();
+        if (userData.success) {
+          setUserData(userData.user);
+        }
+
+        // Fetch videos based on active tab
+        let videoType = '';
+        if (activeTab === 'watch-later') videoType = 'watch-later';
+        else if (activeTab === 'liked') videoType = 'liked';
+        else if (activeTab === 'playlists') videoType = 'favorites';
+
+        if (videoType) {
+          const videosRes = await fetch(`/api/interactions?uid=${user.uid}&type=${videoType}`);
+          const videosData = await videosRes.json();
+          if (videosData.success) {
+            if (activeTab === 'watch-later') {
+              setWatchLaterVideos(videosData.videos);
+            } else if (activeTab === 'liked') {
+              setLikedVideos(videosData.videos);
+            }
+          }
+        }
+
+        // Fetch playlists
+        if (activeTab === 'playlists') {
+          const playlistsRes = await fetch(`/api/playlists?uid=${user.uid}`);
+          const playlistsData = await playlistsRes.json();
+          if (playlistsData.success) {
+            setPlaylists(playlistsData.playlists);
+          }
         }
       } catch (error) {
         console.error('Fetch user data error:', error);
@@ -350,26 +378,48 @@ export default function ProfilePage() {
         {/* Tab Content */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           {activeTab === 'watch-later' && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <p className="text-gray-500 text-sm font-medium">No Videos in Watch Later</p>
-              <p className="text-gray-400 text-xs mt-1">Save videos to watch them later</p>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Watch Later</h2>
+              {watchLaterVideos.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-500 text-sm font-medium">No Videos in Watch Later</p>
+                  <p className="text-gray-400 text-xs mt-1">Save videos to watch them later</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                  {watchLaterVideos.map((video: any) => (
+                    <VideoCard key={video._id} video={video} />
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {activeTab === 'liked' && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-              <p className="text-gray-500 text-sm font-medium">No Liked Videos Yet</p>
-              <p className="text-gray-400 text-xs mt-1">Like videos to see them here</p>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Liked Videos</h2>
+              {likedVideos.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-500 text-sm font-medium">No Liked Videos Yet</p>
+                  <p className="text-gray-400 text-xs mt-1">Like videos to see them here</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                  {likedVideos.map((video: any) => (
+                    <VideoCard key={video._id} video={video} />
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
